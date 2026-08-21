@@ -6,6 +6,9 @@ import pygame
 from gale.game import Game
 from gale.input_handler import InputData, InputHandler, InputListener
 from gale.state import StateMachine
+from gale.text import render_text
+
+import settings
 
 
 class HelloWorld(Game, InputListener):
@@ -17,8 +20,15 @@ class HelloWorld(Game, InputListener):
         self.state_machine.update(dt)
 
     def render(self, surface: pygame.Surface) -> None:
-        self.state_machine.render(surface)
+        surface.fill((0,0,0))
+        render_text(
+            surface,
+            "Si sirve",
+            settings.FONTS["default"],
+            0, y = 0, color=(255,255,255), center=False,
+        )
 
     def on_input(self, input_id: str, input_data: InputData) -> None:
         if (input_id == 'quit' and input_data.pressed):
             self.quit()
+            

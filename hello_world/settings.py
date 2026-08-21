@@ -56,4 +56,6 @@ SOUNDS = {}
 # FONTS = {
 #     'small': pygame.font.Font(BASE_DIR / "assets"  / "fonts" / "font.ttf", 8)
 # }
-FONTS = {}
+FONTS = {
+    'default': pygame.font.Font(None, 15)
+}
