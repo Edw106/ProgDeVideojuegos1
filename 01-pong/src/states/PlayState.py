@@ -22,6 +22,9 @@ from src.rendering import render_table
 class PlayState(BaseState):
     def enter(self, pong) -> None:
         self.pong = pong
+        self.ai_delay = 1
+        self.ai_time = 0
+        self.ai_error = 0
 
     def update(self, dt: float) -> None:
         pong = self.pong
@@ -67,10 +70,27 @@ class PlayState(BaseState):
 
 
         # perfect AI
+        """self.ai_time += dt
+        if self.ai_time >= self.ai_delay:
+            self.ai_time = 0
+            ball = self.pong.ball
+            if ball.y < pong.player2.y:
+                pong.player2.vy = -settings.PADDLE_SPEED
+            elif ball.y + ball.height > (pong.player2.y + pong.player2.height):
+                pong.player2.vy = settings.PADDLE_SPEED
+            else:
+                pong.player2.vy = 0"""
+
+
+        self.ai_time += dt
+        if self.ai_time >= self.ai_delay:
+            self.ai_time = 0
+            self.ai_error = random.gauss(0,12)
+        
         ball = self.pong.ball
-        if ball.y < pong.player2.y:
+        if (ball.y + self.ai_error) < pong.player2.y:
             pong.player2.vy = -settings.PADDLE_SPEED
-        elif ball.y + ball.height > (pong.player2.y + pong.player2.height):
+        elif (ball.y + ball.height + self.ai_error) > (pong.player2.y + pong.player2.height):
             pong.player2.vy = settings.PADDLE_SPEED
         else:
             pong.player2.vy = 0
