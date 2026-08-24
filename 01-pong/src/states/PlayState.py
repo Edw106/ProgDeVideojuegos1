@@ -64,6 +64,19 @@ class PlayState(BaseState):
             pong.ball.vx *= -1.03
             self._randomize_vy()
 
+
+
+        # perfect AI
+        ball = self.pong.ball
+        if ball.y < pong.player2.y:
+            pong.player2.vy = -settings.PADDLE_SPEED
+        elif ball.y + ball.height > (pong.player2.y + pong.player2.height):
+            pong.player2.vy = settings.PADDLE_SPEED
+        else:
+            pong.player2.vy = 0
+
+
+
     def _randomize_vy(self) -> None:
         magnitude = random.randint(10, 149)
         self.pong.ball.vy = -magnitude if self.pong.ball.vy < 0 else magnitude
@@ -112,12 +125,3 @@ class PlayState(BaseState):
                 sign = -1 if input_id == "p1_up" else 1
                 if pong.player1.vy == sign * settings.PADDLE_SPEED:
                     pong.player1.vy = 0
-        elif input_id in ("p2_up", "p2_down"):
-            if input_data.pressed:
-                pong.player2.vy = (
-                    -settings.PADDLE_SPEED if input_id == "p2_up" else settings.PADDLE_SPEED
-                )
-            elif input_data.released:
-                sign = -1 if input_id == "p2_up" else 1
-                if pong.player2.vy == sign * settings.PADDLE_SPEED:
-                    pong.player2.vy = 0

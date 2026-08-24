@@ -26,6 +26,62 @@ class TitleState(BaseState):
 
     def render(self, surface: pygame.Surface) -> None:
         render_table(surface, self.pong)
+
+        title = "PONG"
+
+        # Glow
+        render_text(
+            surface,
+            title,
+            settings.FONTS["score"],
+            settings.VIRTUAL_WIDTH / 2 + 2,
+            settings.VIRTUAL_HEIGHT / 3,
+            settings.COLOR_WHITE,
+            center=True,
+        )
+        render_text(
+            surface,
+            title,
+            settings.FONTS["score"],
+            settings.VIRTUAL_WIDTH / 2 - 2,
+            settings.VIRTUAL_HEIGHT / 3,
+            settings.COLOR_WHITE,
+            center=True,
+        )
+        render_text(
+            surface,
+            title,
+            settings.FONTS["score"],
+            settings.VIRTUAL_WIDTH / 2,
+            settings.VIRTUAL_HEIGHT / 3 + 2,
+            settings.COLOR_WHITE,
+            center=True,
+        )
+
+        render_text(
+            surface,
+            title,
+            settings.FONTS["score"],
+            settings.VIRTUAL_WIDTH / 2,
+            settings.VIRTUAL_HEIGHT / 3 - 2,
+            settings.COLOR_WHITE,
+            center=True,
+        )
+
+
+
+        # Title
+        render_text(
+            surface,
+            title,
+            settings.FONTS["score"],
+            settings.VIRTUAL_WIDTH / 2,
+            settings.VIRTUAL_HEIGHT / 3,
+            settings.COLOR_BACKGROUND,
+            center=True,
+        )
+
+        
         render_text(
             surface,
             "Press enter to start",
@@ -35,6 +91,7 @@ class TitleState(BaseState):
             settings.COLOR_WHITE,
             center=True,
         )
+        
 
     def on_input(self, input_id: str, input_data: InputData) -> None:
         if input_id == "confirm" and input_data.pressed:
