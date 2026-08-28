@@ -60,4 +60,4 @@ FONTS = {
 
 COLOR_BACKGROUND = (0, 0, 0)
 COLOR_WHITE = (255, 255, 255)
-AI_ERROR = 4 # 3 dificil, 5 normal, 8 facil
+AI_ERROR = 3.5   # 3 dificil, 5 normal, 8 facil
