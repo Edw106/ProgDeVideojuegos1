@@ -24,7 +24,7 @@ class PlayState(BaseState):
         self.pong = pong
         self.ai_delay = 1
         self.ai_time = 0
-        self.ai_error = 0
+        self.ai_current_error = 0
 
     def update(self, dt: float) -> None:
         pong = self.pong
@@ -68,34 +68,21 @@ class PlayState(BaseState):
             self._randomize_vy()
 
 
-
-        # perfect AI
-        """self.ai_time += dt
-        if self.ai_time >= self.ai_delay:
-            self.ai_time = 0
-            ball = self.pong.ball
-            if ball.y < pong.player2.y:
-                pong.player2.vy = -settings.PADDLE_SPEED
-            elif ball.y + ball.height > (pong.player2.y + pong.player2.height):
-                pong.player2.vy = settings.PADDLE_SPEED
-            else:
-                pong.player2.vy = 0"""
-
-
+    #AI
         self.ai_time += dt
         if self.ai_time >= self.ai_delay:
             self.ai_time = 0
-            self.ai_error = abs(random.gauss(0, 3))
+            self.ai_current_error = abs(random.gauss(0, settings.AI_ERROR))
         
         ball = self.pong.ball
 
         if (ball.y) < pong.player2.y:
-            if(abs(ball.y - pong.player2.y) > self.ai_error):
+            if(abs(ball.y - pong.player2.y) > self.ai_current_error):
                 pong.player2.vy = -settings.PADDLE_SPEED
             else:
                 pong.player2.vy = 0
         elif (ball.y + ball.height) > (pong.player2.y + pong.player2.height):
-            if(abs(ball.y + ball.height - pong.player2.y - pong.player2.height) > self.ai_error):
+            if(abs(ball.y + ball.height - pong.player2.y - pong.player2.height) > self.ai_current_error):
                 pong.player2.vy = settings.PADDLE_SPEED
             else:
                 pong.player2.vy = 0
