@@ -10,6 +10,8 @@ This file contains the definition of the class TitleScreenState.
 
 import pygame
 
+from typing import Optional
+
 from gale.input_handler import InputData
 from gale.state import BaseState
 from gale.text import render_text
@@ -19,7 +21,7 @@ from src.World import World
 
 
 class PauseState(BaseState):
-    def enter(self) -> None:
+    def enter(self, world: Optional[World] = None) -> None:
         self.world = World()
 
     def update(self, dt: float) -> None:
