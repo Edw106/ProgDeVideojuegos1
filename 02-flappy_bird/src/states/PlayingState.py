@@ -63,3 +63,5 @@ class PlayingState(BaseState):
     def on_input(self, input_id: str, input_data: InputData) -> None:
         if input_id == "jump" and input_data.pressed:
             self.bird.jump()
+        elif input_id == "pause" and input_data.pressed:
+            self.state_machine.change("PauseState")
