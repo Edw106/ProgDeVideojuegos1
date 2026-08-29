@@ -9,7 +9,6 @@ This file contains the definition of the class World: the scrolling
 background/ground, and the log pairs the bird must fly through.
 """
 
-import random
 from typing import List, Optional
 
 import pygame
