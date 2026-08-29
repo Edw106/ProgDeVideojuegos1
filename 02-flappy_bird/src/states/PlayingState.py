@@ -27,8 +27,8 @@ class PlayingState(BaseState):
             world: Optional[World] = None, 
             bird: Optional[Bird] = None, 
             score: Optional[int] = None) -> None:
-        self.world = world if world is not None else World()
-        self.world.reset(True)
+        self.world = world if world is not None else World(mode="normal")
+        self.world.set_mode("normal")
         self.bird = Bird(
             settings.VIRTUAL_WIDTH / 2 - settings.BIRD_WIDTH / 2,
             settings.VIRTUAL_HEIGHT / 2 - settings.BIRD_HEIGHT / 2,

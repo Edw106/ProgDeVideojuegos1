@@ -21,7 +21,7 @@ class CountDownState(BaseState):
             update_world: bool = True,
             bird: Optional[Bird] = None,
             score: Optional[int] = None) -> None:
-        self.world = World(generate_logs=False) if world is None else world
+        self.world = world if world is not None else World(mode=None)
         self.update_world = update_world
         self.bird = bird
         self.score = score

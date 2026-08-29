@@ -10,8 +10,6 @@ This file contains the definition of the class TitleScreenState.
 
 import pygame
 
-from typing import Optional
-
 from gale.input_handler import InputData
 from gale.state import BaseState
 from gale.text import render_text
@@ -28,7 +26,7 @@ class PauseState(BaseState):
         self.score = score
 
     def update(self, dt: float) -> None:
-        1 #empty
+        pass
 
     def render(self, surface: pygame.Surface) -> None:
         self.world.render(surface)
