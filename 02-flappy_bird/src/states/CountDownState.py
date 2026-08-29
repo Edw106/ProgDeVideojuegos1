@@ -17,11 +17,13 @@ from src.Bird import Bird
 class CountDownState(BaseState):
     def enter(
             self, 
-            world: Optional[World] = None,  
+            mode: Optional[str],
+            world: Optional[World] = None,
             update_world: bool = True,
             bird: Optional[Bird] = None,
             score: Optional[int] = None) -> None:
-        self.world = world if world is not None else World(mode=None)
+        self.mode = mode
+        self.world = world if world is not None else World()
         self.update_world = update_world
         self.bird = bird
         self.score = score
@@ -38,7 +40,8 @@ class CountDownState(BaseState):
 
             if self.counter == 0:
                 self.state_machine.change(
-                    "playing", 
+                    "playing",
+                    mode=self.mode,
                     world=self.world, 
                     bird=self.bird, 
                     score=self.score)

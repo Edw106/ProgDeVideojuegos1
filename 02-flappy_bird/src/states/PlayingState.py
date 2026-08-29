@@ -23,19 +23,20 @@ from src.World import World
 
 class PlayingState(BaseState):
     def enter(
-            self, 
+            self,
+            mode: Optional[str],
             world: Optional[World] = None, 
             bird: Optional[Bird] = None, 
             score: Optional[int] = None) -> None:
-        self.world = world if world is not None else World(mode="normal")
-        self.world.set_mode("normal")
+        self.mode = mode
+        self.world = world if world is not None else World()
+        self.world.set_mode(mode)
         self.bird = Bird(
             settings.VIRTUAL_WIDTH / 2 - settings.BIRD_WIDTH / 2,
             settings.VIRTUAL_HEIGHT / 2 - settings.BIRD_HEIGHT / 2,
             settings.BIRD_WIDTH,
             settings.BIRD_HEIGHT,
         ) if bird is None else bird
-        
         self.score = 0 if score is None else score
 
     def update(self, dt: float) -> None:
@@ -45,7 +46,7 @@ class PlayingState(BaseState):
         if self.world.collides(self.bird.get_rect()):
             settings.SOUNDS["explosion"].play()
             settings.SOUNDS["hurt"].play()
-            self.state_machine.change("count_down")
+            self.state_machine.change("count_down", mode=self.mode)
             return
 
         if self.world.update_scored(self.bird.get_rect()):
@@ -70,6 +71,7 @@ class PlayingState(BaseState):
             self.bird.jump()
         elif input_id == "pause" and input_data.pressed:
             self.state_machine.change("pause", 
+                                      mode=self.mode,
                                       world=self.world, 
                                       bird=self.bird, 
                                       score=self.score)

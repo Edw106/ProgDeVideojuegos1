@@ -9,6 +9,7 @@ This file contains the definition of the class TitleScreenState.
 """
 
 import pygame
+from typing import Optional
 
 from gale.input_handler import InputData
 from gale.state import BaseState
@@ -20,7 +21,12 @@ from src.World import World
 
 
 class PauseState(BaseState):
-    def enter(self, world: World, bird: Bird, score: int) -> None:
+    def enter(self, 
+              mode: Optional[str],
+              world: World, 
+              bird: Bird, 
+              score: int) -> None:
+        self.mode = mode
         self.world = world
         self.bird = bird
         self.score = score
@@ -55,6 +61,7 @@ class PauseState(BaseState):
         if input_id == "pause" and input_data.pressed:
             self.state_machine.change(
                 "count_down", 
+                mode=self.mode,
                 world=self.world, 
                 update_world=False, 
                 bird=self.bird,

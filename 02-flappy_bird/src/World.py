@@ -30,9 +30,9 @@ class World:
 
         self.logs: List[LogPair] = []
 
-
     def set_mode(self, mode: Optional[str] = None) -> None:
-        #Si existe no la vuelvo a instanciars
+        #Si existe no la vuelvo a instanciar
+        print(f"World mode: {mode}")
         if self.mode == mode:
             return
 

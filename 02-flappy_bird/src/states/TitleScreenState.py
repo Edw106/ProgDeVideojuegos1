@@ -45,4 +45,4 @@ class TitleScreenState(BaseState):
 
     def on_input(self, input_id: str, input_data: InputData) -> None:
         if input_id == "confirm" and input_data.pressed:
-            self.state_machine.change("count_down", self.world)
+            self.state_machine.change("select_screen", self.world)
