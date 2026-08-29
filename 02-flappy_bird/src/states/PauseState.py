@@ -17,18 +17,22 @@ from gale.state import BaseState
 from gale.text import render_text
 
 import settings
+from src.Bird import Bird
 from src.World import World
 
 
 class PauseState(BaseState):
-    def enter(self, world: Optional[World] = None) -> None:
-        self.world = World()
+    def enter(self, world: World, bird: Bird, score: int) -> None:
+        self.world = world
+        self.bird = bird
+        self.score = score
 
     def update(self, dt: float) -> None:
-        self.world.update(dt)
+        1 #empty
 
     def render(self, surface: pygame.Surface) -> None:
         self.world.render(surface)
+        self.bird.render(surface)
         render_text(
             surface,
             "Paused",
@@ -41,5 +45,8 @@ class PauseState(BaseState):
         )
 
     def on_input(self, input_id: str, input_data: InputData) -> None:
-        if input_id == "confirm" and input_data.pressed:
-            self.state_machine.change("PlayingState")
+        if input_id == "pause" and input_data.pressed:
+            self.state_machine.change("count_down", 
+                                      world=self.world, 
+                                      update_world=False, 
+                                      bird=self.bird)

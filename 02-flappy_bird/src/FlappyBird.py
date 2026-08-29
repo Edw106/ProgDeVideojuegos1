@@ -1,11 +1,12 @@
 """
-ISPPV1 2023
-Study Case: Flappy Bird
+Esta clase es la única que hereda de Game
+Reproduce la música
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Ésta tiene a statemachine, donde debes guardar los estados correspondientes 
+(previamente definidos en states)
 
-This file contains the class FlappyBird as a specialization of gale.Game
+update, render y on_input son los de la state machine (casi completamente)
+
 """
 
 import pygame

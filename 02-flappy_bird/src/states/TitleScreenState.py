@@ -1,11 +1,6 @@
 """
-ISPPV1 2023
-Study Case: Flappy Bird
-
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
-
-This file contains the definition of the class TitleScreenState.
+Renderiza world y letras
+En el input pasa a countdown state
 """
 
 import pygame

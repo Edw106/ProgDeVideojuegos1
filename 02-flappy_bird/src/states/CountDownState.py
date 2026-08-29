@@ -1,25 +1,29 @@
 """
-ISPPV1 2023
-Study Case: Flappy Bird
-
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
-
-This file contains the definition of the class CountDownState.
+Crea un temporizador es 3, y lo baja hasta 1, luego cambia a playing state
 """
 
 import pygame
+
+from typing import Optional
 
 from gale.state import BaseState
 from gale.text import render_text
 
 import settings
 from src.World import World
+from src.Bird import Bird
 
 
 class CountDownState(BaseState):
-    def enter(self) -> None:
-        self.world = World(generate_logs=False)
+    def enter(
+            self, 
+            world: Optional[World] = None,  
+            update_world: bool = True,
+            bird: Optional[Bird] = None) -> None:
+        self.world = World(generate_logs=False) if world is None else world
+        self.update_world = update_world
+        self.bird = bird
+
         self.counter = 3
         self.timer = 0.0
 
@@ -31,13 +35,16 @@ class CountDownState(BaseState):
             self.counter -= 1
 
             if self.counter == 0:
-                self.state_machine.change("playing", world=self.world)
+                self.state_machine.change("playing", world=self.world, bird=self.bird)
                 return
-
-        self.world.update(dt)
+        if self.update_world:
+            self.world.update(dt)
 
     def render(self, surface: pygame.Surface) -> None:
         self.world.render(surface)
+        if(self.bird != None):
+            self.bird.render(surface)
+
         render_text(
             surface,
             str(self.counter),

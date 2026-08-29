@@ -1,11 +1,20 @@
 """
-ISPPV1 2023
-Study Case: Flappy Bird
+Tiene:
+Posición en pantalla
+Tamaño en pantalla
+Velocidad vertical
+Bool a ver si salta
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Puede
+Dar un rectangulo de pygame
+Saltar
 
-This file contains the definition of the class Bird.
+update:
+cae si no salta
+salta y luego cae si salta
+
+render:
+dibuja con surface.blit(...)
 """
 
 import pygame
