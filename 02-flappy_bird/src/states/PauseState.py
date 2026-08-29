@@ -35,6 +35,15 @@ class PauseState(BaseState):
         self.bird.render(surface)
         render_text(
             surface,
+            f"Score: {self.score}",
+            settings.FONTS["flappy"],
+            20,
+            10,
+            settings.COLOR_WHITE,
+            shadowed=True,
+        )
+        render_text(
+            surface,
             "Paused",
             settings.FONTS["flappy"],
             settings.VIRTUAL_WIDTH / 2,
@@ -46,7 +55,9 @@ class PauseState(BaseState):
 
     def on_input(self, input_id: str, input_data: InputData) -> None:
         if input_id == "pause" and input_data.pressed:
-            self.state_machine.change("count_down", 
-                                      world=self.world, 
-                                      update_world=False, 
-                                      bird=self.bird)
+            self.state_machine.change(
+                "count_down", 
+                world=self.world, 
+                update_world=False, 
+                bird=self.bird,
+                score=self.score)

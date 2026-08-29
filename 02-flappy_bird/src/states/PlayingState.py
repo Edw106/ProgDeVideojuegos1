@@ -22,7 +22,11 @@ from src.World import World
 
 
 class PlayingState(BaseState):
-    def enter(self, world: Optional[World] = None, bird: Optional[Bird] = None) -> None:
+    def enter(
+            self, 
+            world: Optional[World] = None, 
+            bird: Optional[Bird] = None, 
+            score: Optional[int] = None) -> None:
         self.world = world if world is not None else World()
         self.world.reset(True)
         self.bird = Bird(
@@ -31,7 +35,8 @@ class PlayingState(BaseState):
             settings.BIRD_WIDTH,
             settings.BIRD_HEIGHT,
         ) if bird is None else bird
-        self.score = 0
+        
+        self.score = 0 if score is None else score
 
     def update(self, dt: float) -> None:
         self.bird.update(dt)
