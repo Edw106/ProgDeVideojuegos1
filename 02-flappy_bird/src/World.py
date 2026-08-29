@@ -32,7 +32,6 @@ class World:
 
     def set_mode(self, mode: Optional[str] = None) -> None:
         #Si existe no la vuelvo a instanciar
-        print(f"World mode: {mode}")
         if self.mode == mode:
             return
 
@@ -40,6 +39,8 @@ class World:
         
         if mode == "normal":
             self.logs_spawn_strategy = NormalLogsSpawnStrategy() #Instanciado
+        elif mode == "hard":
+            self.logs_spawn_strategy = HardLogsSpawnStrategy()
         else:
             self.logs_spawn_strategy = None
 

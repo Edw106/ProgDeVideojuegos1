@@ -32,7 +32,10 @@ class Bird:
         self.jumping: bool = False
 
     def get_rect(self) -> pygame.Rect:
-        return pygame.Rect(round(self.x), round(self.y), self.width, self.height)
+        #tolerance
+        tol_x = self.width * 0.15
+        tol_y = self.height * 0.15
+        return pygame.Rect(round(self.x + tol_x), round(self.y + tol_y), self.width - 2 * tol_x, self.height - 2 * tol_y)
 
     def jump(self) -> None:
         self.jumping = True
