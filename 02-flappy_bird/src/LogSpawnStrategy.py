@@ -48,7 +48,6 @@ class NormalLogsSpawnStrategy(LogsSpawnStrategy):
                 y = maxy
  
             self.last_log_y = y
-            print(f"Last log y: {self.last_log_y}")
             logs.append(self.log_pair_factory.create(settings.VIRTUAL_WIDTH, y))
 
 

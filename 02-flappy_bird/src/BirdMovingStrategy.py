@@ -24,19 +24,21 @@ class HorizontalBirdMovingStrategy(BirdMovingStrategy):
         super().__init__(bird)
 
     def on_input(self, input_id: str, input_data: InputData) -> None:
-        if input_id == "jump" and input_data.pressed:
-            self.bird.jump()
-
         bird = self.bird
+
+        if input_id == "jump" and input_data.pressed:
+            bird.jump()
         
         if input_id in ("left", "right"):
             if input_data.pressed:
-                bird.vx = (
-                    -settings.MAIN_SCROLL_SPEED if input_id == "left" else settings.MAIN_SCROLL_SPEED*1.3
-                )
+                if input_id == "left":
+                    bird.move_left()
+                if input_id == "right":
+                    bird.move_right()
             elif input_data.released:
-                sign = -1 if input_id == "left" else 1
-                if bird.vx == sign * settings.MAIN_SCROLL_SPEED:
-                    bird.vx = 0
-                elif bird.vx == sign * settings.MAIN_SCROLL_SPEED*1.3:
-                    bird.vx = 0
+
+                l = input_id == "left" and bird.is_moving_left()
+                r = input_id == "right" and bird.is_moving_right()
+                    
+                if l or r:
+                    bird.stop_x_movement()

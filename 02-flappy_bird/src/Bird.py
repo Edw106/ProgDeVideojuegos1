@@ -28,9 +28,9 @@ class Bird:
         self.y: float = y
         self.width: float = width
         self.height: float = height
-        self.vy: float = 0.0
+        self._vy: float = 0.0
         self.jumping: bool = False
-        self.vx: float = 0.0
+        self._vx: float = 0.0
 
     def get_rect(self) -> pygame.Rect:
         #tolerance
@@ -41,19 +41,35 @@ class Bird:
     def jump(self) -> None:
         self.jumping = True
 
+    def move_left(self) -> None:
+        self._vx = -settings.MAIN_SCROLL_SPEED
+
+    def move_right(self) -> None:
+        self._vx = settings.MAIN_SCROLL_SPEED
+
+    def stop_x_movement(self) -> None:
+        self._vx = 0
+
+    def is_moving_left(self) -> None:
+        return self._vx < 0
+    
+    def is_moving_right(self) -> None:
+        return self._vx > 0
+    
+
     def update(self, dt: float) -> None:
-        self.vy += settings.GRAVITY * dt
+        self._vy += settings.GRAVITY * dt
 
         if self.jumping:
             settings.SOUNDS["jump"].play()
-            self.vy = -settings.JUMP_TAKEOFF_SPEED
+            self._vy = -settings.JUMP_TAKEOFF_SPEED
             self.jumping = False
 
-        self.y += self.vy * dt
+        self.y += self._vy * dt
         if self.x >= 0 and self.x <= settings.VIRTUAL_WIDTH - self.width:
-            self.x += self.vx * dt
+            self.x += self._vx * dt
         else:
-            self.vx = 0.0
+            self._vx = 0.0
             self.x = max(0, min(self.x, settings.VIRTUAL_WIDTH - self.width))
 
 
