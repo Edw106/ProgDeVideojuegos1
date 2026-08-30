@@ -23,13 +23,14 @@ import settings
 
 
 class Bird:
-    def __init__(self, x: float, y: float, width: float, height: float) -> None:
+    def __init__(self, x: float, y: float, width: float, height: float, horizontal_movement: bool = False) -> None:
         self.x: float = x
         self.y: float = y
         self.width: float = width
         self.height: float = height
         self.vy: float = 0.0
         self.jumping: bool = False
+        self.vx: float = 0.0
 
     def get_rect(self) -> pygame.Rect:
         #tolerance
@@ -49,6 +50,12 @@ class Bird:
             self.jumping = False
 
         self.y += self.vy * dt
+        if self.x >= 0 and self.x <= settings.VIRTUAL_WIDTH - self.width:
+            self.x += self.vx * dt
+        else:
+            self.vx = 0.0
+            self.x = max(0, min(self.x, settings.VIRTUAL_WIDTH - self.width))
+
 
     def render(self, surface: pygame.Surface) -> None:
         surface.blit(settings.TEXTURES["bird"], self.get_rect())

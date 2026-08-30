@@ -20,6 +20,8 @@ input_handler.InputHandler.set_keyboard_action(input_handler.KEY_ESCAPE, "quit")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_RETURN, "confirm")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_UP, "up")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_DOWN, "down")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_LEFT, "left")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_RIGHT, "right")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_SPACE, "jump")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_p, "pause")
 

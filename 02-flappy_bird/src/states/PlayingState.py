@@ -75,3 +75,16 @@ class PlayingState(BaseState):
                                       world=self.world, 
                                       bird=self.bird, 
                                       score=self.score)
+        bird = self.bird
+
+        if self.mode == "hard":
+            if input_id in ("left", "right"):
+                if input_data.pressed:
+                    bird.vx = (
+                        -settings.MAIN_SCROLL_SPEED if input_id == "left" else settings.MAIN_SCROLL_SPEED
+                    )
+                elif input_data.released:
+                    sign = -1 if input_id == "left" else 1
+                    if bird.vx == sign * settings.MAIN_SCROLL_SPEED:
+                        bird.vx = 0
+        
