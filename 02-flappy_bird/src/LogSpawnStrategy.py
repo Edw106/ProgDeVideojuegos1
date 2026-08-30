@@ -106,8 +106,6 @@ class HardLogsSpawnStrategy(LogsSpawnStrategy):
                 miny: float = -settings.LOG_HEIGHT + 10 #limite arriba
                 maxy: float = -110 #limite abajo
 
-                print(f"y={y}")
-                
                 if(self.last_log_y - current_y_difference < miny and self.last_log_y + current_y_difference > maxy):
                     retry = False
                     if(y < miny):
