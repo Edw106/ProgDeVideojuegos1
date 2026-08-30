@@ -3,37 +3,26 @@ from typing import Optional, List
 from abc import ABC, abstractmethod
 
 import settings
-from src.LogPair import LogPair
+from src.GhostPowerUp import GhostPowerUp
 from gale.factory import Factory
 
 
 
-class LogsSpawnStrategy(ABC):
-    def __init__(self, logs_spawn_strategy: Optional['LogsSpawnStrategy'] = None) -> None: #Las autoreferencias entre comillas simples
-        if logs_spawn_strategy == None:
-            self.logs_spawn_timer: float = 0.0
-            self.log_pair_factory: Factory = Factory(LogPair)
-            self.last_log_y: float = 0
-            #Guardo el ultimo Y para saber donde spawnear el siguiente LogPair
-            #Este es su valor inicial, pero luego se va actualizando en el update de cada estrategia
-        else:
-            self.logs_spawn_timer: float = logs_spawn_strategy.logs_spawn_timer
-            self.log_pair_factory: Factory = logs_spawn_strategy.log_pair_factory
-            self.last_log_y: float = logs_spawn_strategy.last_log_y
+class GhostSpawnStrategy(ABC):
+    def __init__(self) -> None:
+        self.ghost_power_up_factory: Factory = Factory(GhostPowerUp)
 
     @abstractmethod
-    def update(self, dt: float, logs: List[LogPair]) -> None:
+    def update(self, dt: float, logs: List[GhostPowerUp]) -> None:
         pass
     
 
-class NormalLogsSpawnStrategy(LogsSpawnStrategy):
-    def __init__(self, logs_spawn_strategy: Optional[LogsSpawnStrategy] = None) -> None:
-        super().__init__(logs_spawn_strategy)
-        self.y_difference = 60
-        self.last_log_y = -settings.LOG_HEIGHT + random.randint(0, 80) + 20
+class NormalGhostSpawnStrategy(GhostSpawnStrategy):
+    def __init__(self) -> None:
+        super().__init__()
         
      
-    def update(self, dt: float, logs: List[LogPair]) -> None:
+    def update(self, dt: float, logs: List[GhostPowerUp]) -> None:
         self.logs_spawn_timer += dt
 
         if self.logs_spawn_timer >= settings.TIME_TO_SPAWN_LOGS:
@@ -48,18 +37,18 @@ class NormalLogsSpawnStrategy(LogsSpawnStrategy):
                 y = maxy
  
             self.last_log_y = y
-            logs.append(self.log_pair_factory.create(settings.VIRTUAL_WIDTH, y))
+            logs.append(self.ghost_power_up_factory.create(settings.VIRTUAL_WIDTH, y))
 
 
-class HardLogsSpawnStrategy(LogsSpawnStrategy):
-    def __init__(self, logs_spawn_strategy: Optional[LogsSpawnStrategy] = None) -> None:
-        super().__init__(logs_spawn_strategy)
+class HardGhostSpawnStrategy(GhostSpawnStrategy):
+    def __init__(self, ghost_spawn_strategy: Optional[GhostSpawnStrategy] = None) -> None:
+        super().__init__(ghost_spawn_strategy)
         self.y_difference = 80
         self.last_log_y = -settings.LOG_HEIGHT + random.randint(0, 80) + 20
         self.variation = 0
         
      
-    def update(self, dt: float, logs: List[LogPair]) -> None:
+    def update(self, dt: float, logs: List[GhostPowerUp]) -> None:
         self.logs_spawn_timer += dt
         self.current_time_to_spawn_logs = settings.TIME_TO_SPAWN_LOGS + self.variation
         if self.logs_spawn_timer >= self.current_time_to_spawn_logs:
@@ -120,5 +109,4 @@ class HardLogsSpawnStrategy(LogsSpawnStrategy):
  
             self.last_log_y = y
             moving_log = random.random() < 0.3
-            power_up:bool = random.random() < 0.2
-            logs.append(self.log_pair_factory.create(settings.VIRTUAL_WIDTH, y, {"moving": moving_log, "power_up": power_up}))
+            logs.append(self.ghost_power_up_factory.create(settings.VIRTUAL_WIDTH, y, {"moving": moving_log}))

@@ -42,6 +42,8 @@ LOG_WIDTH = 70
 LOG_HEIGHT = 288
 LOGS_GAP = 90
 
+POWER_UP_SIDE = 16
+
 GROUND_HEIGHT = 16
 
 BACKGROUND_LOOPING_POINT = 1157
@@ -65,6 +67,7 @@ TEXTURES = {
     "background": pygame.image.load(BASE_DIR / "assets" / "graphics" / "background.png"),
     "ground": pygame.image.load(BASE_DIR / "assets" / "graphics" / "ground.png"),
     "log": pygame.image.load(BASE_DIR / "assets" / "graphics" / "log.png"),
+    "ghost": pygame.image.load(BASE_DIR / "assets" / "graphics" / "ghost.png"),
 }
 # The top log of every pair is the same image, flipped upside down.
 TEXTURES["log_inverted"] = pygame.transform.flip(TEXTURES["log"], False, True)
