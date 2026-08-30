@@ -19,6 +19,7 @@ from gale.text import render_text
 import settings
 from src.Bird import Bird
 from src.World import World
+from src.BirdMovingStrategy import *
 
 
 class PlayingState(BaseState):
@@ -30,7 +31,6 @@ class PlayingState(BaseState):
             score: Optional[int] = None) -> None:
         self.mode = mode
         self.world = world if world is not None else World()
-        self.world.set_mode(mode)
         self.bird = Bird(
             settings.VIRTUAL_WIDTH / 2 - settings.BIRD_WIDTH / 2,
             settings.VIRTUAL_HEIGHT / 2 - settings.BIRD_HEIGHT / 2,
@@ -39,12 +39,22 @@ class PlayingState(BaseState):
         ) if bird is None else bird
         self.score = 0 if score is None else score
 
+
+        # Configuro lo que tiene que ver con el modo
+        self.world.set_mode(mode)
+        if(self.mode == "normal"):
+            self.bird_moving_strategy = StaticBirdMovingStrategy(self.bird)
+        elif(self.mode == "hard"):
+            self.bird_moving_strategy = HorizontalBirdMovingStrategy(self.bird)
+        else:
+            raise ValueError(f"Invalid mode: {self.mode}")
+
+
     def update(self, dt: float) -> None:
         self.bird.update(dt)
         self.world.update(dt)
 
         if self.world.collides(self.bird.get_rect()):
-            settings.SOUNDS["explosion"].play()
             settings.SOUNDS["hurt"].play()
             self.state_machine.change("count_down", mode=self.mode)
             return
@@ -67,24 +77,13 @@ class PlayingState(BaseState):
         )
 
     def on_input(self, input_id: str, input_data: InputData) -> None:
-        if input_id == "jump" and input_data.pressed:
-            self.bird.jump()
-        elif input_id == "pause" and input_data.pressed:
-            self.state_machine.change("pause", 
-                                      mode=self.mode,
-                                      world=self.world, 
-                                      bird=self.bird, 
-                                      score=self.score)
-        bird = self.bird
+        if input_id == "pause" and input_data.pressed:
+            self.state_machine.change(
+                "pause", 
+                mode=self.mode,
+                world=self.world, 
+                bird=self.bird, 
+                score=self.score)
 
-        if self.mode == "hard":
-            if input_id in ("left", "right"):
-                if input_data.pressed:
-                    bird.vx = (
-                        -settings.MAIN_SCROLL_SPEED if input_id == "left" else settings.MAIN_SCROLL_SPEED
-                    )
-                elif input_data.released:
-                    sign = -1 if input_id == "left" else 1
-                    if bird.vx == sign * settings.MAIN_SCROLL_SPEED:
-                        bird.vx = 0
+        self.bird_moving_strategy.on_input(input_id=input_id, input_data=input_data)
         

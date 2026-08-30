@@ -120,5 +120,5 @@ class HardLogsSpawnStrategy(LogsSpawnStrategy):
                     retry = False
  
             self.last_log_y = y
-            moving_log = random.random() < 0.2
+            moving_log = random.random() < 0.3
             logs.append(self.log_pair_factory.create(settings.VIRTUAL_WIDTH, y, {"moving": moving_log}))
