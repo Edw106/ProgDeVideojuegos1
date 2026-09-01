@@ -66,6 +66,7 @@ class HardLogsSpawnStrategy(LogsSpawnStrategy):
             self.logs_spawn_timer = 0.0
 
             retry = True
+            retries = 0
             while retry:
                 #variacion de tiempo en spawnear
                 self.variation = random.uniform(-1, 1) #Recalculo
@@ -105,7 +106,9 @@ class HardLogsSpawnStrategy(LogsSpawnStrategy):
                 miny: float = -settings.LOG_HEIGHT + 10 #limite arriba
                 maxy: float = -110 #limite abajo
 
-                if(self.last_log_y - current_y_difference < miny and self.last_log_y + current_y_difference > maxy):
+                if((self.last_log_y - current_y_difference < miny and 
+                   self.last_log_y + current_y_difference > maxy) or
+                   retries > 3):
                     retry = False
                     if(y < miny):
                         y = miny
@@ -113,8 +116,10 @@ class HardLogsSpawnStrategy(LogsSpawnStrategy):
                         y = maxy
                 elif(y < miny):
                     retry = True
+                    retries += 1
                 elif(y > maxy):
                     retry = True
+                    retries += 1
                 else:
                     retry = False
  
