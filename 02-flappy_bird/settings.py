@@ -71,6 +71,7 @@ TEXTURES = {
     "bird_ghost": pygame.image.load(BASE_DIR / "assets" / "graphics" / "bird_ghost.png"),
 }
 TEXTURES["bird_ghost"].set_alpha(160)
+TEXTURES["ghost"].set_alpha(160)
 # The top log of every pair is the same image, flipped upside down.
 TEXTURES["log_inverted"] = pygame.transform.flip(TEXTURES["log"], False, True)
 
@@ -79,6 +80,7 @@ SOUNDS = {
     "explosion": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "explosion.wav"),
     "hurt": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "hurt.wav"),
     "score": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "score.wav"),
+    "boo": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "boo.wav")
 }
 
 NORMAL_MUSIC = BASE_DIR / "assets" / "sounds" / "marios_way.ogg"

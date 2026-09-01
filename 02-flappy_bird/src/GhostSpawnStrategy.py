@@ -18,6 +18,10 @@ class GhostSpawnStrategy(ABC):
     def update(self, dt: float, ghosts: List[GhostPowerUp]) -> None:
         pass
 
+    @abstractmethod
+    def try_spawn(self):
+        pass
+
     
 
 
@@ -26,6 +30,7 @@ class HardGhostSpawnStrategy(GhostSpawnStrategy):
         super().__init__()
         self._new_time_to_spawn()
         self.time_to_spawn = 0
+        self.probability = 0.1
 
     def _new_time_to_spawn(self) -> None:
         self.time_to_spawn = random.uniform(4, 7)
@@ -42,8 +47,9 @@ class HardGhostSpawnStrategy(GhostSpawnStrategy):
                 ghosts.append(self.ghost_power_up_factory.create(settings.VIRTUAL_WIDTH, y))
                 retry = False"""
 
-    def spawn(self, y: float, ghosts: List[GhostPowerUp], x_offset: Optional[float] = 0) -> None:
-        ghosts.append(self.ghost_power_up_factory.create(settings.VIRTUAL_WIDTH + x_offset, y))
+    def try_spawn(self, y: float, ghosts: List[GhostPowerUp], x_offset: Optional[float] = 0) -> None:
+        if(random.random() < self.probability):
+            ghosts.append(self.ghost_power_up_factory.create(settings.VIRTUAL_WIDTH + x_offset, y))
 
  
             

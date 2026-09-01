@@ -42,6 +42,9 @@ class Bird:
         self._ghost_timer = 0
         self._ghost_on_finish = None
 
+    def is_ghost(self) -> None:
+        return self._is_ghost
+
     def get_rect(self) -> pygame.Rect:
         return pygame.Rect(self.x, self.y, self.width, self.height)
 

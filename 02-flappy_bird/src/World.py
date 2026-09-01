@@ -80,15 +80,13 @@ class World:
         if self.ghosts_spawn_strategy is not None:
             self.ghosts_spawn_strategy.update(dt, self.ghost_power_ups)
 
-            if self.logs.__len__() != 0:
-                if self.last_log_y != self.logs[-1]:
-                    self.last_log_y = self.logs[-1]
-                    if random.random() < self.ghosts_probability:
-                        self.ghosts_spawn_strategy.spawn(
-                            y = self.logs[-1].get_center_y() -settings.POWER_UP_SIDE/2, 
-                            ghosts = self.ghost_power_ups,
-                            x_offset = settings.LOG_WIDTH/2 - settings.POWER_UP_SIDE/2
-                        )
+            if (self.logs.__len__() != 0 and self.last_log_y != self.logs[-1]):
+                self.last_log_y = self.logs[-1]
+                self.ghosts_spawn_strategy.try_spawn(
+                    y = self.logs[-1].get_center_y() -settings.POWER_UP_SIDE/2, 
+                    ghosts = self.ghost_power_ups,
+                    x_offset = settings.LOG_WIDTH/2 - settings.POWER_UP_SIDE/2
+                )
 
         self.background_x += -settings.BACK_SCROLL_SPEED * dt
 
@@ -119,5 +117,6 @@ class World:
 
         surface.blit(
             settings.TEXTURES["ground"],
-            (round(self.ground_x), settings.VIRTUAL_HEIGHT - settings.GROUND_HEIGHT),
+            (round(self.ground_x), 
+            settings.VIRTUAL_HEIGHT - settings.GROUND_HEIGHT),
         )

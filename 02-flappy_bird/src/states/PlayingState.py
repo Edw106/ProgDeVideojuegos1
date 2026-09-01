@@ -48,9 +48,6 @@ class PlayingState(BaseState):
             self.bird_moving_strategy = HorizontalBirdMovingStrategy(self.bird)
         else:
             raise ValueError(f"Invalid mode: {self.mode}")
-
-        pygame.mixer.music.load(settings.NORMAL_MUSIC)
-        pygame.mixer.music.play(loops=-1)
         
 
 
@@ -58,12 +55,9 @@ class PlayingState(BaseState):
         self.bird.update(dt)
         self.world.update(dt)
 
-
-        def play_normal_music():
-            pygame.mixer.music.load(settings.NORMAL_MUSIC)
-            pygame.mixer.music.play(loops=-1)
-
         if self.world.collides(self.bird.get_hurtbox()):
+            if self.bird.is_ghost():
+                self.play_music(settings.NORMAL_MUSIC)
             settings.SOUNDS["hurt"].play()
             self.state_machine.change("count_down", mode=self.mode)
             return
@@ -72,15 +66,15 @@ class PlayingState(BaseState):
             self.score += 1
             settings.SOUNDS["score"].play()
 
+        #Ghost
         colliding_ghost_power_up = self.world.get_colliding_ghost_power_up(self.bird.get_rect())
-
         if colliding_ghost_power_up is not None:
             colliding_ghost_power_up.use()
-            
-                
-            self.bird.ghost_power_up(time=4,on_finish= play_normal_music)
-            pygame.mixer.music.load(settings.GHOST_MUSIC)
-            pygame.mixer.music.play(loops=-1)
+            already_ghost = self.bird.is_ghost()
+            self.bird.ghost_power_up(time=4,on_finish= lambda: self.play_music(settings.NORMAL_MUSIC))
+            settings.SOUNDS["boo"].play()
+            if self.bird.is_ghost() and not already_ghost:
+                self.play_music(settings.GHOST_MUSIC)
 
             
 
@@ -108,3 +102,6 @@ class PlayingState(BaseState):
 
         self.bird_moving_strategy.on_input(input_id=input_id, input_data=input_data)
         
+    def play_music(self, file) -> None:
+        pygame.mixer.music.load(file)
+        pygame.mixer.music.play(loops=-1)
