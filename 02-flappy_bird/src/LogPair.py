@@ -20,7 +20,7 @@ from .GhostPowerUp import GhostPowerUp
 
 
 class LogPair:
-    def __init__(self, x: float, y: float, moving: bool = False, power_up: bool = False) -> None:
+    def __init__(self, x: float, y: float, moving: bool = False) -> None:
         self.x: float = x
         self.y: float = y
         self.scored: bool = False
@@ -28,10 +28,6 @@ class LogPair:
         self.move_interval: float = random.uniform(1.0, 2.0)
         self.move_timer: float = 0.0
         self.opened: bool = True
-        if power_up:
-            self.power_up = GhostPowerUp(x + settings.LOG_WIDTH/2 - settings.POWER_UP_SIDE/2, self.get_center_y() -settings.POWER_UP_SIDE/2)
-        else:
-            self.power_up = None
 
     def get_top_rect(self) -> pygame.Rect:
         if self.opened:
@@ -62,8 +58,6 @@ class LogPair:
         return self.get_top_rect().colliderect(rect) or self.get_bottom_rect().colliderect(rect)
 
     def update(self, dt: float) -> None:
-        if self.power_up is not None:
-            self.power_up.update(dt)
 
         self.x += -settings.MAIN_SCROLL_SPEED * dt
 
@@ -97,7 +91,5 @@ class LogPair:
         return False
 
     def render(self, surface: pygame.Surface) -> None:
-        if self.power_up is not None:
-            self.power_up.render(surface)
         surface.blit(settings.TEXTURES["log_inverted"], self.get_top_rect())
         surface.blit(settings.TEXTURES["log"], self.get_bottom_rect())

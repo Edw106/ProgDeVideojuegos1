@@ -18,9 +18,14 @@ class GhostPowerUp:
     def update(self, dt: float) -> None:
         self.x += -settings.MAIN_SCROLL_SPEED * dt
 
-    def use(self, bird: Bird) -> None:
-        bird.power_up("ghost")
+    def use(self) -> None:
         self.used = True
+
+    def is_used(self) -> bool:
+        return self.used
+
+    def is_out_of_game(self) -> bool:
+        return self.x < -settings.POWER_UP_SIDE
 
     def render(self, surface: pygame.surface) -> None:
         texture = settings.TEXTURES["ghost"]

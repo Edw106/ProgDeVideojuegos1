@@ -49,12 +49,21 @@ class PlayingState(BaseState):
         else:
             raise ValueError(f"Invalid mode: {self.mode}")
 
+        pygame.mixer.music.load(settings.NORMAL_MUSIC)
+        pygame.mixer.music.play(loops=-1)
+        
+
 
     def update(self, dt: float) -> None:
         self.bird.update(dt)
         self.world.update(dt)
 
-        if self.world.collides(self.bird.get_rect()):
+
+        def play_normal_music():
+            pygame.mixer.music.load(settings.NORMAL_MUSIC)
+            pygame.mixer.music.play(loops=-1)
+
+        if self.world.collides(self.bird.get_hurtbox()):
             settings.SOUNDS["hurt"].play()
             self.state_machine.change("count_down", mode=self.mode)
             return
@@ -62,6 +71,18 @@ class PlayingState(BaseState):
         if self.world.update_scored(self.bird.get_rect()):
             self.score += 1
             settings.SOUNDS["score"].play()
+
+        colliding_ghost_power_up = self.world.get_colliding_ghost_power_up(self.bird.get_rect())
+
+        if colliding_ghost_power_up is not None:
+            colliding_ghost_power_up.use()
+            
+                
+            self.bird.ghost_power_up(time=4,on_finish= play_normal_music)
+            pygame.mixer.music.load(settings.GHOST_MUSIC)
+            pygame.mixer.music.play(loops=-1)
+
+            
 
     def render(self, surface: pygame.Surface) -> None:
         self.world.render(surface)

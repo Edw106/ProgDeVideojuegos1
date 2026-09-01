@@ -120,5 +120,4 @@ class HardLogsSpawnStrategy(LogsSpawnStrategy):
  
             self.last_log_y = y
             moving_log = random.random() < 0.3
-            power_up:bool = random.random() < 0.2
-            logs.append(self.log_pair_factory.create(settings.VIRTUAL_WIDTH, y, {"moving": moving_log, "power_up": power_up}))
+            logs.append(self.log_pair_factory.create(settings.VIRTUAL_WIDTH, y, {"moving": moving_log}))
