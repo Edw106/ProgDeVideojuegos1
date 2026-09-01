@@ -82,7 +82,6 @@ class World:
 
             if (self.logs.__len__() != 0 and self.last_log != self.logs[-1]):
                 self.last_log = self.logs[-1]
-                print("intento")
                 self.ghosts_spawn_strategy.try_spawn(
                     y = self.logs[-1].get_center_y() -settings.POWER_UP_SIDE/2, 
                     ghosts = self.ghost_power_ups,
