@@ -30,7 +30,7 @@ class HardGhostSpawnStrategy(GhostSpawnStrategy):
         super().__init__()
         self._new_time_to_spawn()
         self.time_to_spawn = 0
-        self.probability = 0.1
+        self.probability = 0.15
 
     def _new_time_to_spawn(self) -> None:
         self.time_to_spawn = random.uniform(4, 7)

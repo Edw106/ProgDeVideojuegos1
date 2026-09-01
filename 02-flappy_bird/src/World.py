@@ -32,7 +32,7 @@ class World:
 
         self.logs: List[LogPair] = []
         self.ghost_power_ups: List[GhostPowerUp] = []
-        self.last_log_y = 0
+        self.last_log = 0
         self.ghosts_probability = 0.1
 
     def set_mode(self, mode: Optional[str] = None) -> None:
@@ -80,8 +80,9 @@ class World:
         if self.ghosts_spawn_strategy is not None:
             self.ghosts_spawn_strategy.update(dt, self.ghost_power_ups)
 
-            if (self.logs.__len__() != 0 and self.last_log_y != self.logs[-1]):
-                self.last_log_y = self.logs[-1]
+            if (self.logs.__len__() != 0 and self.last_log != self.logs[-1]):
+                self.last_log = self.logs[-1]
+                print("intento")
                 self.ghosts_spawn_strategy.try_spawn(
                     y = self.logs[-1].get_center_y() -settings.POWER_UP_SIDE/2, 
                     ghosts = self.ghost_power_ups,
