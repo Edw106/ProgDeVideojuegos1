@@ -1,0 +1,107 @@
+"""
+ISPPV1 2023
+Study Case: Flappy Bird
+
+Author: Alejandro Mujica
+alejandro.j.mujic4@gmail.com
+
+This file contains the definition of the class PlayingState.
+"""
+
+from typing import Optional
+
+import pygame
+
+from gale.input_handler import InputData
+from gale.state import BaseState
+from gale.text import render_text
+
+import settings
+from src.Bird import Bird
+from src.World import World
+from src.BirdMovingStrategy import *
+
+
+class PlayingState(BaseState):
+    def enter(
+            self,
+            mode: Optional[str],
+            world: Optional[World] = None, 
+            bird: Optional[Bird] = None, 
+            score: Optional[int] = None) -> None:
+        self.mode = mode
+        self.world = world if world is not None else World()
+        self.bird = Bird(
+            settings.VIRTUAL_WIDTH / 2 - settings.BIRD_WIDTH / 2,
+            settings.VIRTUAL_HEIGHT / 2 - settings.BIRD_HEIGHT / 2,
+            settings.BIRD_WIDTH,
+            settings.BIRD_HEIGHT,
+        ) if bird is None else bird
+        self.score = 0 if score is None else score
+
+
+        # Configuro lo que tiene que ver con el modo
+        self.world.set_mode(mode)
+        if(self.mode == "normal"):
+            self.bird_moving_strategy = StaticBirdMovingStrategy(self.bird)
+        elif(self.mode == "hard"):
+            self.bird_moving_strategy = HorizontalBirdMovingStrategy(self.bird)
+        else:
+            raise ValueError(f"Invalid mode: {self.mode}")
+        
+
+
+    def update(self, dt: float) -> None:
+        self.bird.update(dt)
+        self.world.update(dt)
+
+        if self.world.collides(self.bird.get_hurtbox()):
+            if self.bird.is_ghost():
+                self.play_music(settings.NORMAL_MUSIC)
+            settings.SOUNDS["hurt"].play()
+            self.state_machine.change("count_down", mode=self.mode)
+            return
+
+        if self.world.update_scored(self.bird.get_rect()):
+            self.score += 1
+            settings.SOUNDS["score"].play()
+
+        #Ghost
+        colliding_ghost_power_up = self.world.get_colliding_ghost_power_up(self.bird.get_rect())
+        if colliding_ghost_power_up is not None:
+            colliding_ghost_power_up.use()
+            already_ghost = self.bird.is_ghost()
+            self.bird.ghost_power_up(time=4,on_finish= lambda: self.play_music(settings.NORMAL_MUSIC))
+            settings.SOUNDS["boo"].play()
+            if self.bird.is_ghost() and not already_ghost:
+                self.play_music(settings.GHOST_MUSIC)
+
+            
+
+    def render(self, surface: pygame.Surface) -> None:
+        self.world.render(surface)
+        self.bird.render(surface)
+        render_text(
+            surface,
+            f"Score: {self.score}",
+            settings.FONTS["flappy"],
+            20,
+            10,
+            settings.COLOR_WHITE,
+            shadowed=True,
+        )
+
+    def on_input(self, input_id: str, input_data: InputData) -> None:
+        if input_id == "pause" and input_data.pressed:
+            self.state_machine.change(
+                "pause", 
+                mode=self.mode,
+                world=self.world, 
+                bird=self.bird, 
+                score=self.score)
+
+        self.bird_moving_strategy.on_input(input_id=input_id, input_data=input_data)
+        
+    def play_music(self, file) -> None:
+        pygame.mixer.music.load(file)
+        pygame.mixer.music.play(loops=-1)
