@@ -25,7 +25,7 @@ class LogPair:
         self.y: float = y
         self.scored: bool = False
         self.moving: bool = moving
-        self.move_interval: float = random.uniform(1.0, 2.0)
+        self.move_interval: float = random.uniform(1.3, 2.0)
         self.move_timer: float = 0.0
         self.opened: bool = True
 
