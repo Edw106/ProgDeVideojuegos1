@@ -36,6 +36,7 @@ class PlayState(BaseState):
             + settings.PADDLE_GROW_UP_POINTS * (self.paddle.size + 1) * self.level
         )
         self.powerups = params.get("powerups", [])
+        self.projectiles = params.get("projectiles", [])
 
         if not params.get("resume", False):
             self.balls[0].vx = random.randint(-80, 80)
@@ -48,15 +49,24 @@ class PlayState(BaseState):
         self.paddle.update(dt)
 
         for ball in self.balls:
+            if getattr(ball, "is_attached", False):
+                ball.x = self.paddle.x + ball.offset_x
+                ball.y = self.paddle.y - ball.height
+            
             ball.update(dt)
             ball.solve_world_boundaries()
 
             # Check collision with the paddle
-            if ball.collides(self.paddle):
+            if ball.collides(self.paddle) and not getattr(ball, "is_attached", False):
                 settings.SOUNDS["paddle_hit"].stop()
                 settings.SOUNDS["paddle_hit"].play()
-                ball.rebound(self.paddle)
-                ball.push(self.paddle)
+                
+                if getattr(self.paddle, "is_sticky", False):
+                    ball.is_attached = True
+                    ball.offset_x = ball.x - self.paddle.x
+                else:
+                    ball.rebound(self.paddle)
+                    ball.push(self.paddle)
 
             # Check collision with brickset
             if not ball.collides(self.brickset):
@@ -69,7 +79,9 @@ class PlayState(BaseState):
 
             brick.hit()
             self.score += brick.score()
-            ball.rebound(brick)
+            
+            if not getattr(ball, "is_fire", False):
+                ball.rebound(brick)
 
             # Check earn life
             if self.score >= self.points_to_next_live:
@@ -86,11 +98,12 @@ class PlayState(BaseState):
                 )
                 self.paddle.inc_size()
 
-            # Chance to generate two more balls
-            if random.random() < 0.1:
+            # Chance to generate a powerup
+            if random.random() < 0.2:  # Increased chance for testing
                 r = brick.get_collision_rect()
+                powerup_type = random.choice(["TwoMoreBall", "StickyPowerUp", "CannonPowerUp", "FireBallPowerUp"])
                 self.powerups.append(
-                    self.powerups_abstract_factory.get_factory("TwoMoreBall").create(
+                    self.powerups_abstract_factory.get_factory(powerup_type).create(
                         r.centerx - 8, r.centery - 8
                     )
                 )
@@ -126,6 +139,20 @@ class PlayState(BaseState):
 
         # Remove powerups that are not in play
         self.powerups = [p for p in self.powerups if p.active]
+        
+        # Update projectiles
+        for proj in self.projectiles:
+            proj.update(dt)
+            if not proj.active:
+                continue
+                
+            brick = self.brickset.get_colliding_brick(proj.get_collision_rect())
+            if brick:
+                brick.hit()
+                self.score += brick.score()
+                proj.active = False
+                
+        self.projectiles = [p for p in self.projectiles if p.active]
 
         # Check victory
         if self.brickset.size == 1 and next(
@@ -174,6 +201,16 @@ class PlayState(BaseState):
         self.brickset.render(surface)
 
         self.paddle.render(surface)
+        
+        # Draw cannons on paddle if active
+        if getattr(self.paddle, "has_cannons", False):
+            # Draw left cannon
+            pygame.draw.rect(surface, (150, 150, 150), (self.paddle.x, self.paddle.y - 4, 4, 8))
+            # Draw right cannon
+            pygame.draw.rect(surface, (150, 150, 150), (self.paddle.x - 4, self.paddle.y - 4, 4, 8))
+
+        for proj in self.projectiles:
+            proj.render(surface)
 
         for ball in self.balls:
             ball.render(surface)
@@ -204,4 +241,19 @@ class PlayState(BaseState):
                 points_to_next_live=self.points_to_next_live,
                 live_factor=self.live_factor,
                 powerups=self.powerups,
+                projectiles=self.projectiles,
             )
+        elif input_id == "launch" and input_data.pressed:
+            for ball in self.balls:
+                if getattr(ball, "is_attached", False):
+                    ball.is_attached = False
+                    ball.vy = random.randint(-170, -100)
+                    ball.vx = random.randint(-80, 80)
+        elif input_id == "shoot" and input_data.pressed:
+            if getattr(self.paddle, "has_cannons", False) and len(self.projectiles) == 0:
+                from src.Projectile import Projectile
+                # Left cannon
+                self.projectiles.append(Projectile(self.paddle.x, self.paddle.y - 10))
+                # Right cannon
+                self.projectiles.append(Projectile(self.paddle.x - 4, self.paddle.y - 10))
+                settings.SOUNDS["paddle_hit"].play()

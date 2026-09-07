@@ -31,6 +31,9 @@ class Ball:
         self.frame = random.randint(0, 6)
         self.active = True
 
+        self.is_attached = False
+        self.offset_x = 0
+
     def get_collision_rect(self) -> pygame.Rect:
         return pygame.Rect(self.x, self.y, self.width, self.height)
 
@@ -60,8 +63,9 @@ class Ball:
         return self.get_collision_rect().colliderect(another.get_collision_rect())
 
     def update(self, dt: float) -> None:
-        self.x += self.vx * dt
-        self.y += self.vy * dt
+        if not self.is_attached:
+            self.x += self.vx * dt
+            self.y += self.vy * dt
 
     def render(self, surface):
         surface.blit(

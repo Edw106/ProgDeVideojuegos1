@@ -39,6 +39,8 @@ class Breakout(Game):
         pygame.mixer_music.play(loops=-1)
 
     def update(self, dt: float) -> None:
+        from gale.timer import Timer
+        Timer.update(dt)
         self.state_machine.update(dt)
 
     def render(self, surface: pygame.Surface) -> None:
