@@ -47,7 +47,15 @@ class PlayState(BaseState):
     def update(self, dt: float) -> None:
         self.paddle.update(dt)
 
+        # This moves the balls, checks whether they collides and handles what that entails
         for ball in self.balls:
+            if ball.catch():
+                ball.set_position(
+                    ball.x + self.paddle.vx * dt,
+                    self.paddle.y - ball.height,
+                )
+                continue
+
             ball.update(dt)
             ball.solve_world_boundaries()
 
@@ -55,8 +63,13 @@ class PlayState(BaseState):
             if ball.collides(self.paddle):
                 settings.SOUNDS["paddle_hit"].stop()
                 settings.SOUNDS["paddle_hit"].play()
-                ball.rebound(self.paddle)
-                ball.push(self.paddle)
+                if self.paddle.can_catch():
+                    ball.catch(True)
+                    ball.set_position(ball.x, self.paddle.y - ball.height)
+                    ball.set_velocity(0, 0)
+                else:
+                    ball.rebound(self.paddle)
+                    ball.push(self.paddle)
 
             # Check collision with brickset
             if not ball.collides(self.brickset):
@@ -86,11 +99,12 @@ class PlayState(BaseState):
                 )
                 self.paddle.inc_size()
 
-            # Chance to generate two more balls
+            # Chance to generate a power-up
             if random.random() < 0.1:
                 r = brick.get_collision_rect()
+                powerup_type = random.choice(["TwoMoreBall", "CatchBall"])
                 self.powerups.append(
-                    self.powerups_abstract_factory.get_factory("TwoMoreBall").create(
+                    self.powerups_abstract_factory.get_factory(powerup_type).create(
                         r.centerx - 8, r.centery - 8
                     )
                 )
@@ -98,8 +112,10 @@ class PlayState(BaseState):
         # Removing all balls that are not in play
         self.balls = [ball for ball in self.balls if ball.active]
 
+        # Updating the brickset
         self.brickset.update(dt)
 
+        # If there are not balls, you loose, change state
         if not self.balls:
             self.lives -= 1
             if self.lives == 0:
@@ -127,7 +143,7 @@ class PlayState(BaseState):
         # Remove powerups that are not in play
         self.powerups = [p for p in self.powerups if p.active]
 
-        # Check victory
+        # Check victory (if all blocks are broken), and changes state
         if self.brickset.size == 1 and next(
             (True for _, b in self.brickset.bricks.items() if b.broken), False
         ):
@@ -171,13 +187,17 @@ class PlayState(BaseState):
             (255, 255, 255),
         )
 
+        # The bricks
         self.brickset.render(surface)
 
+        # The paddle
         self.paddle.render(surface)
 
+        # All the balls
         for ball in self.balls:
             ball.render(surface)
 
+        # All the power ups
         for powerup in self.powerups:
             powerup.render(surface)
 

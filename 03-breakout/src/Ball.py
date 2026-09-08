@@ -30,6 +30,21 @@ class Ball:
         self.texture = settings.TEXTURES["spritesheet"]
         self.frame = random.randint(0, 6)
         self.active = True
+        self._is_caught = False
+
+    def catch(self, is_caught: Optional[bool] = None) -> bool:
+        if is_caught is not None:
+            self._is_caught = is_caught
+        return self._is_caught
+
+    def set_position(self, x: float, y: float) -> None:
+        if self._is_caught:
+            self.x = x
+            self.y = y
+
+    def set_velocity(self, vx: float, vy: float) -> None:
+        self.vx = vx
+        self.vy = vy
 
     def get_collision_rect(self) -> pygame.Rect:
         return pygame.Rect(self.x, self.y, self.width, self.height)
@@ -60,8 +75,9 @@ class Ball:
         return self.get_collision_rect().colliderect(another.get_collision_rect())
 
     def update(self, dt: float) -> None:
-        self.x += self.vx * dt
-        self.y += self.vy * dt
+        if not self._is_caught:
+            self.x += self.vx * dt
+            self.y += self.vy * dt
 
     def render(self, surface):
         surface.blit(

@@ -31,6 +31,13 @@ class Paddle:
 
         # The paddle only move horizontally
         self.vx = 0
+        self._can_catch = False
+
+    def can_catch(self) -> bool:
+        return self._can_catch
+
+    def set_can_catch(self, can_catch: bool) -> None:
+        self._can_catch = can_catch
 
     def resize(self, size: int) -> None:
         self.size = size
