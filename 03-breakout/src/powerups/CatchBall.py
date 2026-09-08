@@ -22,7 +22,11 @@ class CatchBall(PowerUp):
 
         def deactivate():
             play_state.paddle.set_can_catch(False)
+            play_state.release_caught_balls()
             settings.SOUNDS["hurt"].stop()
             settings.SOUNDS["hurt"].play()
+            if timer in play_state.timers:
+                play_state.timers.remove(timer)
 
-        Timer.after(5, deactivate)
+        timer = Timer.after(5, deactivate)
+        play_state.timers.append(timer)

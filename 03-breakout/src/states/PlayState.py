@@ -9,6 +9,7 @@ This file contains the class to define the Play state.
 """
 
 import random
+from typing import Any
 
 import pygame
 
@@ -16,6 +17,7 @@ from gale.factory import AbstractFactory
 from gale.state import BaseState
 from gale.input_handler import InputData
 from gale.text import render_text
+from gale.timer import Timer
 
 import settings
 import src.powerups
@@ -36,13 +38,32 @@ class PlayState(BaseState):
             + settings.PADDLE_GROW_UP_POINTS * (self.paddle.size + 1) * self.level
         )
         self.powerups = params.get("powerups", [])
+        self.timers = params.get("timers", [])
 
         if not params.get("resume", False):
-            self.balls[0].vx = random.randint(-80, 80)
-            self.balls[0].vy = random.randint(-170, -100)
-            settings.SOUNDS["paddle_hit"].play()
+            self.clear_timers()
+            self.launch_ball(self.balls[0])
+        else:
+            Timer.resume()
 
         self.powerups_abstract_factory = AbstractFactory("src.powerups")
+
+    def clear_timers(self) -> None:
+        for timer in self.timers:
+            timer.remove()
+        self.timers.clear()
+
+    def launch_ball(self, ball: Any) -> None:
+        ball.catch(False)
+        ball.vx = random.randint(-80, 80)
+        ball.vy = random.randint(-170, -100)
+        settings.SOUNDS["paddle_hit"].stop()
+        settings.SOUNDS["paddle_hit"].play()
+
+    def release_caught_balls(self) -> None:
+        for ball in self.balls:
+            if ball.catch():
+                self.launch_ball(ball)
 
     def update(self, dt: float) -> None:
         self.paddle.update(dt)
@@ -117,6 +138,7 @@ class PlayState(BaseState):
 
         # If there are not balls, you loose, change state
         if not self.balls:
+            self.clear_timers()
             self.lives -= 1
             if self.lives == 0:
                 self.state_machine.change("game_over", score=self.score)
@@ -147,6 +169,7 @@ class PlayState(BaseState):
         if self.brickset.size == 1 and next(
             (True for _, b in self.brickset.bricks.items() if b.broken), False
         ):
+            self.clear_timers()
             self.state_machine.change(
                 "victory",
                 lives=self.lives,
@@ -212,7 +235,10 @@ class PlayState(BaseState):
                 self.paddle.vx = settings.PADDLE_SPEED
             elif input_data.released and self.paddle.vx > 0:
                 self.paddle.vx = 0
+        elif input_id == "enter" and input_data.pressed:
+            self.release_caught_balls()
         elif input_id == "pause" and input_data.pressed:
+            Timer.pause()
             self.state_machine.change(
                 "pause",
                 level=self.level,
@@ -224,4 +250,5 @@ class PlayState(BaseState):
                 points_to_next_live=self.points_to_next_live,
                 live_factor=self.live_factor,
                 powerups=self.powerups,
+                timers=self.timers,
             )
