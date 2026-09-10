@@ -93,9 +93,11 @@ class Ball:
             self.y += self.vy * dt
 
     def render(self, surface):
-        surface.blit(
-            self.texture, (self.x, self.y), settings.FRAMES["balls"][self.frame]
-        )
+        ball_img = self.texture.subsurface(settings.FRAMES["balls"][self.frame]).copy()
+        if self.is_fire:
+            # Add strong red/yellow for fire effect
+            ball_img.fill((120, 60, 0), special_flags=pygame.BLEND_RGB_ADD)
+        surface.blit(ball_img, (self.x, self.y))
 
     @staticmethod
     def get_intersection(r1: pygame.Rect, r2: pygame.Rect) -> Optional[Tuple[int, int]]:

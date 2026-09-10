@@ -92,7 +92,7 @@ class ServeState(BaseState):
         )
 
     def on_input(self, input_id: str, input_data: InputData) -> None:
-        if input_id == "enter" and input_data.pressed:
+        if (input_id == "enter" or input_id == "launch_ball") and input_data.pressed:
             self.state_machine.change(
                 "play",
                 level=self.level,

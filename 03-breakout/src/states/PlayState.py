@@ -109,7 +109,7 @@ class PlayState(BaseState):
             self.paddle.inc_size()
 
         # Chance to generate a power-up
-        if random.random() < 1:
+        if random.random() < 0.1:
             r = brick.get_collision_rect()
             powerup_type = random.choice(["TwoMoreBall", "CatchBall", "Cannons", "FireBall"])
             powerup = self.powerups_abstract_factory.get_factory(powerup_type).create(
@@ -119,13 +119,15 @@ class PlayState(BaseState):
             self.event_manager.register(powerup)
 
     def update(self, dt: float) -> None:
+        old_paddle_x = self.paddle.x
         self.paddle.update(dt)
+        dx = self.paddle.x - old_paddle_x
 
         # This moves the balls, checks whether they collides and handles what that entails
         for ball in self.balls:
             if ball.catch():
                 ball.set_position(
-                    ball.x + self.paddle.vx * dt,
+                    ball.x + dx,
                     self.paddle.y - ball.height,
                 )
                 continue
@@ -167,8 +169,8 @@ class PlayState(BaseState):
             if ball.is_fire:
                 if brick not in ball.colliding_bricks:
                     ball.colliding_bricks.add(brick)
-                    score_earned = brick.break_brick()
-                    self.process_brick_hit(brick, score_earned)
+                    score_earned = brick.hit()
+                    self.process_brick_hit(brick, brick.score())
             else:
                 brick.hit()
                 ball.rebound(brick)
@@ -234,8 +236,10 @@ class PlayState(BaseState):
         self.powerups = new_powerups
 
         # Check victory (if all blocks are broken), and changes state
-        if self.brickset.size == 1 and next(
-            (True for _, b in self.brickset.bricks.items() if b.broken), False
+        if (self.brickset.size == 1
+            and next((True for _, b in 
+                  self.brickset.bricks.items() if b.broken), False)
+            or self.brickset.size == 0
         ):
             self.state_machine.change(
                 "victory",
@@ -307,7 +311,7 @@ class PlayState(BaseState):
                 self.paddle.vx = settings.PADDLE_SPEED
             elif input_data.released and self.paddle.vx > 0:
                 self.paddle.vx = 0
-        elif input_id == "enter" and input_data.pressed:
+        elif (input_id == "enter" or input_id == "launch_ball") and input_data.pressed:
             self.release_caught_balls()
         elif input_id == "shoot" and input_data.pressed:
             if len(self.projectiles) == 0:

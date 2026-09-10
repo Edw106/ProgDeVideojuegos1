@@ -13,7 +13,7 @@ class Cannons(PowerUp):
 
     def __init__(self, x: int, y: int) -> None:
         # Power-up frame from the spritesheet
-        super().__init__(x, y, 6)
+        super().__init__(x, y, 1)
         self.paddle_x = 0
         self.paddle_y = 0
         self.paddle_width = 0
@@ -37,6 +37,9 @@ class Cannons(PowerUp):
             self.paddle_x = kwargs.get("x", self.paddle_x)
             self.paddle_y = kwargs.get("y", self.paddle_y)
             self.paddle_width = kwargs.get("width", self.paddle_width)
+        elif event == "PADDLE_RESIZE":
+            self.paddle_width = kwargs.get("width", self.paddle_width)
+            self.paddle_x = kwargs.get("x", self.paddle_x)
         elif event == "FIRE_CANNONS":
             if self.using and self.shots_fired < 3:
                 self.shots_fired += 1
@@ -48,7 +51,7 @@ class Cannons(PowerUp):
                 right_y = self.paddle_y - c_height
                 self.notify("SPAWN_PROJECTILES", left_x=left_x, left_y=left_y, right_x=right_x, right_y=right_y)
                 
-                if self.shots_fired >= 3:
+                if self.shots_fired >= 2:
                     self.finish()
 
     def get_name(self) -> str:

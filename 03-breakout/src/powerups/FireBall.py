@@ -7,7 +7,7 @@ class FireBall(PowerUp):
     Power-up to turn the balls into fireballs.
     """
     def __init__(self, x: int, y: int) -> None:
-        super().__init__(x, y, 9)
+        super().__init__(x, y, 6)
 
     def take(self, *args, **kwargs) -> None:
         super().take(*args, **kwargs)

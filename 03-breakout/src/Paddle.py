@@ -68,6 +68,7 @@ class Paddle(EventManager):
     def resize(self, size: int) -> None:
         self.size = size
         self.width = (self.size + 1) * 32
+        self.notify("PADDLE_RESIZE", width=self.width, x=self.x)
 
     def dec_size(self):
         self.resize(max(0, self.size - 1))
@@ -87,4 +88,7 @@ class Paddle(EventManager):
             self.x = min(settings.VIRTUAL_WIDTH - self.width, next_x)
 
     def render(self, surface: pygame.Surface) -> None:
-        surface.blit(self.texture, (self.x, self.y), self.frames[self.skin][self.size])
+        paddle_img = self.texture.subsurface(self.frames[self.skin][self.size]).copy()
+        if self._can_catch:
+            paddle_img.fill((60, 60, 0), special_flags=pygame.BLEND_RGB_ADD)
+        surface.blit(paddle_img, (self.x, self.y))
