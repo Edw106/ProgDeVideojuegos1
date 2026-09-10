@@ -31,6 +31,9 @@ class Ball:
         self.frame = random.randint(0, 6)
         self.active = True
         self._is_caught = False
+        self.is_fire = False
+        self.pending_fire_deactivation = False
+        self.colliding_bricks = set()
 
     def catch(self, is_caught: Optional[bool] = None) -> bool:
         if is_caught is not None:
@@ -43,7 +46,14 @@ class Ball:
             self.y = y
 
     def on_event(self, event: Any, *args, **kwargs) -> None:
-        pass
+        if event == "POWERUP: FireBall":
+            self.is_fire = True
+            self.pending_fire_deactivation = False
+        elif event == "POWERUP_FINISHED_REQUEST: FireBall":
+            if len(self.colliding_bricks) > 0:
+                self.pending_fire_deactivation = True
+            else:
+                self.is_fire = False
 
     def set_velocity(self, vx: float, vy: float) -> None:
         self.vx = vx

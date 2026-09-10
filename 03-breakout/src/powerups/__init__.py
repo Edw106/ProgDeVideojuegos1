@@ -12,6 +12,7 @@ from src.powerups.PowerUp import PowerUp
 from src.powerups.TwoMoreBall import TwoMoreBall
 from src.powerups.CatchBall import CatchBall
 from src.powerups.Cannons import Cannons
+from src.powerups.FireBall import FireBall
 
-(PowerUp, TwoMoreBall, CatchBall, Cannons)
+(PowerUp, TwoMoreBall, CatchBall, Cannons, FireBall)
 

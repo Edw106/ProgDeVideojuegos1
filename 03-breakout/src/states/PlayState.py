@@ -111,7 +111,7 @@ class PlayState(BaseState):
         # Chance to generate a power-up
         if random.random() < 1:
             r = brick.get_collision_rect()
-            powerup_type = random.choice(["TwoMoreBall", "CatchBall", "Cannons"])
+            powerup_type = random.choice(["TwoMoreBall", "CatchBall", "Cannons", "FireBall"])
             powerup = self.powerups_abstract_factory.get_factory(powerup_type).create(
                 r.centerx - 8, r.centery - 8
             )
@@ -147,16 +147,32 @@ class PlayState(BaseState):
 
             # Check collision with brickset
             if not ball.collides(self.brickset):
+                if ball.is_fire and len(ball.colliding_bricks) > 0:
+                    ball.colliding_bricks.clear()
+                    if ball.pending_fire_deactivation:
+                        ball.is_fire = False
+                        ball.pending_fire_deactivation = False
                 continue
 
             brick = self.brickset.get_colliding_brick(ball.get_collision_rect())
 
             if brick is None:
+                if ball.is_fire and len(ball.colliding_bricks) > 0:
+                    ball.colliding_bricks.clear()
+                    if ball.pending_fire_deactivation:
+                        ball.is_fire = False
+                        ball.pending_fire_deactivation = False
                 continue
 
-            brick.hit()
-            ball.rebound(brick)
-            self.process_brick_hit(brick, brick.score())
+            if ball.is_fire:
+                if brick not in ball.colliding_bricks:
+                    ball.colliding_bricks.add(brick)
+                    score_earned = brick.break_brick()
+                    self.process_brick_hit(brick, score_earned)
+            else:
+                brick.hit()
+                ball.rebound(brick)
+                self.process_brick_hit(brick, brick.score())
 
         # Removing all balls that are not in play
         self.balls = [ball for ball in self.balls if ball.active]
@@ -191,6 +207,8 @@ class PlayState(BaseState):
                 powerup.collides(self.paddle)):
                 powerup.register(self.paddle)
                 powerup.register(self)
+                for ball in self.balls:
+                    powerup.register(ball)
                 powerup.register_to(self.paddle)
                 powerup.take()
 
