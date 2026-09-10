@@ -18,6 +18,7 @@ from .EventManager import EventManager
 
 class Paddle(EventManager):
     def __init__(self, x: int, y: int) -> None:
+        super().__init__()
         self.x = x
         self.y = y
         self.width = 64
@@ -33,9 +34,19 @@ class Paddle(EventManager):
         self.frames = settings.FRAMES["paddles"]
 
         # The paddle only move horizontally
-        self.vx = 0
+        self._vx = 0
         self._can_catch = False
-        self.active_catch_powerups = []
+        self.active_catch_powerups = 0
+
+    @property
+    def vx(self) -> float:
+        return self._vx
+
+    @vx.setter
+    def vx(self, value: float) -> None:
+        if self._vx != value:
+            self._vx = value
+            self.notify("PADDLE_VELOCITY_CHANGE", vx=self._vx, x=self.x, y=self.y, width=self.width)
 
     def can_catch(self) -> bool:
         return self._can_catch
@@ -43,28 +54,16 @@ class Paddle(EventManager):
     def set_can_catch(self, can_catch: bool) -> None:
         self._can_catch = can_catch
 
-    def on_event(self, event: Any) -> None:
-        if hasattr(event, "get_name") and event.get_name() == "CatchBall":
-            if getattr(event, "using", False):
-                if event not in self.active_catch_powerups:
-                    self.active_catch_powerups.append(event)
-                self.set_can_catch(True)
-            else:
-                if event in self.active_catch_powerups:
-                    self.active_catch_powerups.remove(event)
-                self.active_catch_powerups = [
-                    p for p in self.active_catch_powerups if getattr(p, "using", False)
-                ]
-                if not self.active_catch_powerups:
-                    self.set_can_catch(False)
-        elif event == "POWERUP: CatchBall":
+    def on_event(self, event: Any, *args, **kwargs) -> None:
+        if event in ("POWERUP: CatchBall", "POWERUP_ACTIVATE: CatchBall"):
+            self.active_catch_powerups += 1
             self.set_can_catch(True)
-        elif event in ("POWERUP_DEACTIVATE: CatchBall", "POWERUP_EXPIRED: CatchBall", "POWERUP_FINISHED: CatchBall"):
-            self.active_catch_powerups = [
-                p for p in self.active_catch_powerups if getattr(p, "using", False)
-            ]
-            if not self.active_catch_powerups:
+        elif event in ("POWERUP_DEACTIVATE: CatchBall", "POWERUP_FINISHED: CatchBall", "POWERUP_EXPIRED: CatchBall"):
+            self.active_catch_powerups = max(0, self.active_catch_powerups - 1)
+            if self.active_catch_powerups == 0:
                 self.set_can_catch(False)
+        elif event == "POWERUP: Cannons":
+            self.notify("PADDLE_VELOCITY_CHANGE", vx=self._vx, x=self.x, y=self.y, width=self.width)
 
     def resize(self, size: int) -> None:
         self.size = size

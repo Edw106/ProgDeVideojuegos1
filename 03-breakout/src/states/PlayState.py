@@ -55,7 +55,7 @@ class PlayState(BaseState):
         else:
             self.event_manager.notify("RESUME")
 
-    def on_event(self, event: Any) -> None:
+    def on_event(self, event: Any, *args, **kwargs) -> None:
         if event == "POWERUP: TwoMoreBall":
             if not hasattr(self, "ball_factory"):
                 self.ball_factory = Factory(Ball)
@@ -90,9 +90,6 @@ class PlayState(BaseState):
         # This moves the balls, checks whether they collides and handles what that entails
         for ball in self.balls:
             if ball.catch():
-                if not self.paddle.can_catch():
-                    self.launch_ball(ball)
-                    continue
                 ball.set_position(
                     ball.x + self.paddle.vx * dt,
                     self.paddle.y - ball.height,
@@ -184,7 +181,7 @@ class PlayState(BaseState):
                 if powerup.collides(self.paddle):
                     powerup.register(self.paddle)
                     powerup.register(self)
-                    self.event_manager.notify("POWERUP: " + powerup.get_name())
+                    powerup.register_to(self.paddle)
                     powerup.take()
 
         # Remove powerups that are not in play and not in use
@@ -194,6 +191,7 @@ class PlayState(BaseState):
                 new_powerups.append(p)
             else:
                 self.event_manager.unregister(p)
+                p.unregister_from(self.paddle)
         self.powerups = new_powerups
 
         # Check victory (if all blocks are broken), and changes state

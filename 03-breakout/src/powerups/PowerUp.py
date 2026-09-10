@@ -29,10 +29,12 @@ class PowerUp(EventManager):
         self.active = True
         self.frame = frame
         self.using = False
+        
+    def take(self, *args: Any, **kwargs: Any) -> None:
+        self.notify(f"POWERUP: {self.get_name()}")
 
     def finish(self) -> None:
         self.using = False
-        self.notify(self)
         self.notify(f"POWERUP_FINISHED: {self.get_name()}")
 
     def pause(self) -> None:
@@ -41,11 +43,12 @@ class PowerUp(EventManager):
     def resume(self) -> None:
         pass
 
-    def on_event(self, event: Any) -> None:
-        if event == "PAUSE":
-            self.pause()
-        elif event == "RESUME":
-            self.resume()
+    def on_event(self, event: Any, *args, **kwargs) -> None:
+        match event:
+            case "PAUSE":
+                self.pause()
+            case "RESUME":
+                self.resume()
 
     def get_collision_rect(self) -> pygame.Rect:
         return pygame.Rect(self.x, self.y, 16, 16)
@@ -66,8 +69,6 @@ class PowerUp(EventManager):
             settings.FRAMES["powerups"][self.frame],
         )
 
-    def take(self, *args: Any, **kwargs: Any) -> None:
-        raise NotImplementedError
 
     def get_name(self) -> str:
         raise NotImplementedError

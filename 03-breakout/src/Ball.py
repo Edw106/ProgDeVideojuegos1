@@ -42,7 +42,7 @@ class Ball:
             self.x = x
             self.y = y
 
-    def on_event(self, event: Any) -> None:
+    def on_event(self, event: Any, *args, **kwargs) -> None:
         pass
 
     def set_velocity(self, vx: float, vy: float) -> None:

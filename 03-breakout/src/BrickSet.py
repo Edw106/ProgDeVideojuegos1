@@ -18,7 +18,7 @@ class Brickset:
     def get_collision_rect(self) -> pygame.Rect:
         return self.collision_rect
 
-    def on_event(self, event: Any) -> None:
+    def on_event(self, event: Any, *args, **kwargs) -> None:
         pass
 
     def add_brick(self, i: int, j: int, brick: Brick) -> None:
