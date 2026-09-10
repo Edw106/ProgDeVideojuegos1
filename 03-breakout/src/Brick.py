@@ -69,6 +69,29 @@ class Brick:
         else:
             self.tier -= 1
 
+    def break_brick(self) -> int:
+        settings.SOUNDS["brick_hit_1"].stop()
+        settings.SOUNDS["brick_hit_1"].play()
+
+        r, g, b = COLOR_PALETTE[self.color]
+        self.particle_system.set_colors([(r, g, b, 10), (r, g, b, 50)])
+        self.particle_system.generate()
+        self.particle_system.generate() 
+
+        earned_score = 0
+        while not self.broken:
+            earned_score += self.score()
+            if self.tier == 0:
+                if self.color == 0:
+                    self.broken = True
+                else:
+                    self.tier = 3
+                    self.color -= 1
+            else:
+                self.tier -= 1
+        
+        return earned_score
+
     def score(self):
         return self.tier * 200 + (self.color + 1) * 25
 

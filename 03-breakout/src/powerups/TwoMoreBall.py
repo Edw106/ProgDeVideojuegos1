@@ -21,9 +21,10 @@ class TwoMoreBall(PowerUp):
         super().__init__(x, y, 8)
 
     def take(self, *args, **kwargs) -> None:
-        self.active = False
+        super().take(*args, **kwargs)
         settings.SOUNDS["paddle_hit"].stop()
         settings.SOUNDS["paddle_hit"].play()
+        self.finish()
 
     def get_name(self) -> str:
         return "TwoMoreBall"

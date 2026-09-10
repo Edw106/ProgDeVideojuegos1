@@ -25,12 +25,14 @@ class PowerUp(EventManager):
         super().__init__()
         self.x = x
         self.y = y
-        self.vy = settings.POWERUP_SPEED
         self.active = True
-        self.frame = frame
         self.using = False
+        self.vy = 100
+        self.frame = frame
         
     def take(self, *args: Any, **kwargs: Any) -> None:
+        self.active = False
+        self.using = True
         self.notify(f"POWERUP: {self.get_name()}")
 
     def finish(self) -> None:
@@ -63,11 +65,12 @@ class PowerUp(EventManager):
         self.y += self.vy * dt
 
     def render(self, surface: pygame.Surface) -> None:
-        surface.blit(
-            settings.TEXTURES["spritesheet"],
-            (self.x, self.y),
-            settings.FRAMES["powerups"][self.frame],
-        )
+        if self.active:
+            surface.blit(
+                settings.TEXTURES["spritesheet"],
+                (self.x, self.y),
+                settings.FRAMES["powerups"][self.frame],
+            )
 
 
     def get_name(self) -> str:

@@ -22,6 +22,7 @@ import settings
 import src.powerups
 from src.Ball import Ball
 from src.EventManager import EventManager
+from src.Projectile import Projectile
 
 
 class PlayState(BaseState):
@@ -39,6 +40,7 @@ class PlayState(BaseState):
             + settings.PADDLE_GROW_UP_POINTS * (self.paddle.size + 1) * self.level
         )
         self.powerups = params.get("powerups", [])
+        self.projectiles = []
 
         self.powerups_abstract_factory = AbstractFactory("src.powerups")
         self.event_manager = EventManager()
@@ -71,6 +73,10 @@ class PlayState(BaseState):
         elif event == "POWERUP_FINISHED: CatchBall":
             if not self.paddle.can_catch():
                 self.release_caught_balls()
+        elif event == "SPAWN_PROJECTILES":
+            p1 = Projectile(kwargs["left_x"], kwargs["left_y"])
+            p2 = Projectile(kwargs["right_x"], kwargs["right_y"])
+            self.projectiles.extend([p1, p2])
 
     def launch_ball(self, ball: Any) -> None:
         ball.catch(False)
@@ -83,6 +89,34 @@ class PlayState(BaseState):
         for ball in self.balls:
             if ball.catch():
                 self.launch_ball(ball)
+
+    def process_brick_hit(self, brick: Any, earned_score: int) -> None:
+        self.score += earned_score
+
+        # Check earn life
+        if self.score >= self.points_to_next_live:
+            settings.SOUNDS["life"].play()
+            self.lives = min(3, self.lives + 1)
+            self.live_factor += 0.5
+            self.points_to_next_live += settings.LIVE_POINTS_BASE * self.live_factor
+
+        # Check growing up of the paddle
+        if self.score >= self.points_to_next_grow_up:
+            settings.SOUNDS["grow_up"].play()
+            self.points_to_next_grow_up += (
+                settings.PADDLE_GROW_UP_POINTS * (self.paddle.size + 1) * self.level
+            )
+            self.paddle.inc_size()
+
+        # Chance to generate a power-up
+        if random.random() < 1:
+            r = brick.get_collision_rect()
+            powerup_type = random.choice(["TwoMoreBall", "CatchBall", "Cannons"])
+            powerup = self.powerups_abstract_factory.get_factory(powerup_type).create(
+                r.centerx - 8, r.centery - 8
+            )
+            self.powerups.append(powerup)
+            self.event_manager.register(powerup)
 
     def update(self, dt: float) -> None:
         self.paddle.update(dt)
@@ -121,33 +155,8 @@ class PlayState(BaseState):
                 continue
 
             brick.hit()
-            self.score += brick.score()
             ball.rebound(brick)
-
-            # Check earn life
-            if self.score >= self.points_to_next_live:
-                settings.SOUNDS["life"].play()
-                self.lives = min(3, self.lives + 1)
-                self.live_factor += 0.5
-                self.points_to_next_live += settings.LIVE_POINTS_BASE * self.live_factor
-
-            # Check growing up of the paddle
-            if self.score >= self.points_to_next_grow_up:
-                settings.SOUNDS["grow_up"].play()
-                self.points_to_next_grow_up += (
-                    settings.PADDLE_GROW_UP_POINTS * (self.paddle.size + 1) * self.level
-                )
-                self.paddle.inc_size()
-
-            # Chance to generate a power-up
-            if random.random() < 0.1:
-                r = brick.get_collision_rect()
-                powerup_type = random.choice(["TwoMoreBall", "CatchBall"])
-                powerup = self.powerups_abstract_factory.get_factory(powerup_type).create(
-                    r.centerx - 8, r.centery - 8
-                )
-                self.powerups.append(powerup)
-                self.event_manager.register(powerup)
+            self.process_brick_hit(brick, brick.score())
 
         # Removing all balls that are not in play
         self.balls = [ball for ball in self.balls if ball.active]
@@ -175,14 +184,26 @@ class PlayState(BaseState):
 
         # Update powerups
         for powerup in self.powerups:
-            if powerup.active:
+            if powerup.active or powerup.using:
                 powerup.update(dt)
 
-                if powerup.collides(self.paddle):
-                    powerup.register(self.paddle)
-                    powerup.register(self)
-                    powerup.register_to(self.paddle)
-                    powerup.take()
+            if (powerup.active and
+                powerup.collides(self.paddle)):
+                powerup.register(self.paddle)
+                powerup.register(self)
+                powerup.register_to(self.paddle)
+                powerup.take()
+
+        # Update projectiles
+        for p in self.projectiles:
+            p.update(dt)
+            if p.collides(self.brickset):
+                brick = self.brickset.get_colliding_brick(p.get_collision_rect())
+                if brick:
+                    earned_score = brick.break_brick()
+                    self.process_brick_hit(brick, earned_score)
+                    p.active = False
+        self.projectiles = [p for p in self.projectiles if p.active]
 
         # Remove powerups that are not in play and not in use
         new_powerups = []
@@ -248,9 +269,13 @@ class PlayState(BaseState):
         for ball in self.balls:
             ball.render(surface)
 
+        # All the projectiles
+        for p in self.projectiles:
+            p.render(surface)
+
         # All the power ups
         for powerup in self.powerups:
-            if powerup.active:
+            if powerup.active or powerup.using:
                 powerup.render(surface)
 
     def on_input(self, input_id: str, input_data: InputData) -> None:
@@ -266,6 +291,9 @@ class PlayState(BaseState):
                 self.paddle.vx = 0
         elif input_id == "enter" and input_data.pressed:
             self.release_caught_balls()
+        elif input_id == "shoot" and input_data.pressed:
+            if len(self.projectiles) == 0:
+                self.event_manager.notify("FIRE_CANNONS")
         elif input_id == "pause" and input_data.pressed:
             self.event_manager.notify("PAUSE")
             self.state_machine.change(

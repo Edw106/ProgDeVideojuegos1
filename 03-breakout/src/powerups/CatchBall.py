@@ -14,8 +14,6 @@ class CatchBall(PowerUp):
 
     def take(self, *args, **kwargs) -> None:
         super().take(*args, **kwargs)
-        self.active = False
-        self.using = True
         settings.SOUNDS["paddle_hit"].stop()
         settings.SOUNDS["paddle_hit"].play()
         Timer.after(7, self.finish)
