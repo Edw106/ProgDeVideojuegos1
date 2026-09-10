@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 import pygame
 
@@ -17,6 +17,9 @@ class Brickset:
 
     def get_collision_rect(self) -> pygame.Rect:
         return self.collision_rect
+
+    def on_event(self, event: Any) -> None:
+        pass
 
     def add_brick(self, i: int, j: int, brick: Brick) -> None:
         self.bricks[(i, j)] = brick

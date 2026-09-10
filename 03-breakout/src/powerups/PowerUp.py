@@ -11,21 +11,41 @@ This file contains the base class PowerUp as an abstract class.
 from typing import TypeVar, Any
 
 import pygame
+from ..EventManager import EventManager
 
 import settings
 
 
-class PowerUp:
+class PowerUp(EventManager):
     """
     The base power-up.
     """
 
     def __init__(self, x: int, y: int, frame: int) -> None:
+        super().__init__()
         self.x = x
         self.y = y
         self.vy = settings.POWERUP_SPEED
         self.active = True
         self.frame = frame
+        self.using = False
+
+    def finish(self) -> None:
+        self.using = False
+        self.notify(self)
+        self.notify(f"POWERUP_FINISHED: {self.get_name()}")
+
+    def pause(self) -> None:
+        pass
+
+    def resume(self) -> None:
+        pass
+
+    def on_event(self, event: Any) -> None:
+        if event == "PAUSE":
+            self.pause()
+        elif event == "RESUME":
+            self.resume()
 
     def get_collision_rect(self) -> pygame.Rect:
         return pygame.Rect(self.x, self.y, 16, 16)
@@ -46,5 +66,8 @@ class PowerUp:
             settings.FRAMES["powerups"][self.frame],
         )
 
-    def take(self, play_state: TypeVar("PlayState")) -> None:
+    def take(self, *args: Any, **kwargs: Any) -> None:
+        raise NotImplementedError
+
+    def get_name(self) -> str:
         raise NotImplementedError
