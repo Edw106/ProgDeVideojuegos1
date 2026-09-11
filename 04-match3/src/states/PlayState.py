@@ -128,7 +128,8 @@ class PlayState(BaseState):
             return
 
         if input_id == "click" and input_data.pressed:
-            pos_x, pos_y = input_data.position
+            pos_x, pos_y = input_data.position #Position of the mouse click in the window
+            # They are scaled to the virtual resolution (board)
             pos_x = pos_x * settings.VIRTUAL_WIDTH // settings.WINDOW_WIDTH
             pos_y = pos_y * settings.VIRTUAL_HEIGHT // settings.WINDOW_HEIGHT
             i = (pos_y - self.board.y) // settings.TILE_SIZE
@@ -174,7 +175,7 @@ class PlayState(BaseState):
                                 tile1.i,
                                 tile1.j,
                             )
-                            self._calculate_matches([tile1, tile2])
+                            self._calculate_matches([tile1, tile2], revert_on_failure=True)
 
                         # Swap tiles
                         Timer.tween(
@@ -188,11 +189,41 @@ class PlayState(BaseState):
 
                     self.highlighted_tile = False
 
-    def _calculate_matches(self, tiles: List) -> None:
+    def _calculate_matches(self, tiles: List, revert_on_failure: bool = False) -> None:
         matches = self.board.calculate_matches_for(tiles)
 
         if matches is None:
-            self.active = True
+            if revert_on_failure and len(tiles) == 2:
+                tile1, tile2 = tiles[0], tiles[1]
+
+                settings.SOUNDS["error"].play()
+
+                def revert():
+                    (
+                        self.board.tiles[tile1.i][tile1.j],
+                        self.board.tiles[tile2.i][tile2.j],
+                    ) = (
+                        self.board.tiles[tile2.i][tile2.j],
+                        self.board.tiles[tile1.i][tile1.j],
+                    )
+                    tile1.i, tile1.j, tile2.i, tile2.j = (
+                        tile2.i,
+                        tile2.j,
+                        tile1.i,
+                        tile1.j,
+                    )
+                    self.active = True
+
+                Timer.tween(
+                    0.25,
+                    [
+                        (tile1, {"x": tile2.x, "y": tile2.y}),
+                        (tile2, {"x": tile1.x, "y": tile1.y}),
+                    ],
+                    on_finish=revert,
+                )
+            else:
+                self.active = True
             return
 
         settings.SOUNDS["match"].stop()
