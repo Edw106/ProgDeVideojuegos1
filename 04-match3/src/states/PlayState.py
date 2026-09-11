@@ -58,13 +58,30 @@ class PlayState(BaseState):
         )
 
         def decrement_timer():
-            self.timer -= 1
+            if not self.no_moves_text:
+                self.timer -= 1
 
-            # Play warning sound on timer if we get low
-            if self.timer <= 5:
-                settings.SOUNDS["clock"].play()
+                # Play warning sound on timer if we get low
+                if self.timer <= 5:
+                    settings.SOUNDS["clock"].play()
 
         Timer.every(1, decrement_timer)
+
+        self.no_moves_text = False
+
+        self._check_any_valid_move()
+
+    def _check_any_valid_move(self): # And reset if not
+        if not self.board.any_valid_move():
+            self.active = False
+            self.no_moves_text = True
+            
+            def reset_board():
+                self.board._initialize_tiles()
+                self.no_moves_text = False
+                self.active = True
+                
+            Timer.after(3.0, reset_board)
 
     def update(self, _: float) -> None:
         if self.timer <= 0:
@@ -122,6 +139,23 @@ class PlayState(BaseState):
             (99, 155, 255),
             shadowed=True,
         )
+
+        if self.no_moves_text:
+            # Render background for text
+            rect_surface = pygame.Surface((settings.VIRTUAL_WIDTH, 40), pygame.SRCALPHA)
+            pygame.draw.rect(rect_surface, (56, 56, 56, 234), pygame.Rect(0, 0, settings.VIRTUAL_WIDTH, 40))
+            surface.blit(rect_surface, (0, settings.VIRTUAL_HEIGHT // 2 - 20))
+
+            render_text(
+                surface,
+                "No Valid Moves! Recreating Board...",
+                settings.FONTS["medium"],
+                settings.VIRTUAL_WIDTH // 2,
+                settings.VIRTUAL_HEIGHT // 2,
+                (255, 255, 255),
+                center=True,
+                shadowed=True,
+            )
 
     def on_input(self, input_id: str, input_data: InputData) -> None:
         if not self.active:
@@ -224,6 +258,7 @@ class PlayState(BaseState):
                 )
             else:
                 self.active = True
+                self._check_any_valid_move()
             return
 
         settings.SOUNDS["match"].stop()

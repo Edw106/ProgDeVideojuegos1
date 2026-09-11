@@ -24,7 +24,10 @@ class Board:
         self.y = y
         self.matches: List[List[Tile]] = []
         self.tiles: List[List[Tile]] = []
-        self._initialize_tiles()
+        valid_board = False
+        while(not valid_board):
+            self._initialize_tiles()
+            valid_board = self.any_valid_move()
 
     def render(self, surface: pygame.Surface) -> None:
         for row in self.tiles:
@@ -130,6 +133,52 @@ class Board:
 
         self.in_stack.remove(tile)
         return match
+
+    def any_valid_move(self) -> bool:
+        original_matches = self.matches.copy()
+        
+        for i in range(settings.BOARD_HEIGHT):
+            for j in range(settings.BOARD_WIDTH):
+                tile1 = self.tiles[i][j]
+                
+                # Check right neighbor
+                if j < settings.BOARD_WIDTH - 1:
+                    tile2 = self.tiles[i][j + 1]
+                    # Swap
+                    self.tiles[i][j], self.tiles[i][j + 1] = tile2, tile1
+                    tile1.j, tile2.j = tile2.j, tile1.j
+                    
+                    self.matches = []
+                    matches = self.calculate_matches_for([tile1, tile2])
+                    
+                    # Swap back
+                    self.tiles[i][j], self.tiles[i][j + 1] = tile1, tile2
+                    tile1.j, tile2.j = tile2.j, tile1.j
+                    
+                    if matches is not None:
+                        self.matches = original_matches
+                        return True
+                        
+                # Check bottom neighbor
+                if i < settings.BOARD_HEIGHT - 1:
+                    tile2 = self.tiles[i + 1][j]
+                    # Swap
+                    self.tiles[i][j], self.tiles[i + 1][j] = tile2, tile1
+                    tile1.i, tile2.i = tile2.i, tile1.i
+                    
+                    self.matches = []
+                    matches = self.calculate_matches_for([tile1, tile2])
+                    
+                    # Swap back
+                    self.tiles[i][j], self.tiles[i + 1][j] = tile1, tile2
+                    tile1.i, tile2.i = tile2.i, tile1.i
+                    
+                    if matches is not None:
+                        self.matches = original_matches
+                        return True
+                        
+        self.matches = original_matches
+        return False
 
     def calculate_matches_for(
         self, new_tiles: List[Tile]
