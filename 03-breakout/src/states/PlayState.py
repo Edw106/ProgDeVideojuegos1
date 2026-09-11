@@ -126,11 +126,14 @@ class PlayState(BaseState):
         # This moves the balls, checks whether they collides and handles what that entails
         for ball in self.balls:
             if ball.catch():
-                ball.set_position(
-                    ball.x + dx,
-                    self.paddle.y - ball.height,
-                )
-                continue
+                if not self.paddle.can_catch():
+                    self.launch_ball(ball)
+                else:
+                    ball.set_position(
+                        ball.x + dx,
+                        self.paddle.y - ball.height,
+                    )
+                    continue
 
             ball.update(dt)
             ball.solve_world_boundaries()
