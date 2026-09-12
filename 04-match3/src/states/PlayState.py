@@ -39,7 +39,7 @@ class PlayState(BaseState):
 
         self.timer = settings.LEVEL_TIME
 
-        self.goal_score = self.score + self.level * 1.25 * 1000
+        self.goal_score: int = self.score + int(self.level * 1.25 * 1000)
 
         # A surface that supports alpha to highlight a selected tile
         self.tile_alpha_surface = pygame.Surface(
