@@ -113,6 +113,11 @@ class PlayState(BaseState):
         self.pressed_camera_target = pygame.Vector2()
         self.aim_offset = pygame.Vector2()
 
+        self.birds: list[Bird] = [self.bird]
+        self.has_split = False
+        self.can_split = True
+        self.bird_thrown = False
+
     def fixed_update(self) -> None:
         # Driven by gale.game.Game's own accumulator (added in gale
         # 1.10.0) instead of calling self.world.update(dt) here, which
@@ -129,6 +134,12 @@ class PlayState(BaseState):
             return
 
         if self.flinging:
+            if self.can_split and not self.has_split:
+                for other in self.bird.body.touching_bodies:
+                    if other.user_data != "wind":
+                        self.can_split = False
+                        break
+
             self.camera_target.update(self.bird.position)
             self._update_idle()
         elif self.aiming:
@@ -157,19 +168,27 @@ class PlayState(BaseState):
         self.bird.body.angular_velocity = 0.0
 
     def _update_idle(self) -> None:
-        linear_speed = self.bird.body.velocity.length()
-        angular_speed = abs(self.bird.body.angular_velocity)
+        all_idle = True
+        for b in self.birds:
+            linear_speed = b.body.velocity.length()
+            angular_speed = abs(b.body.angular_velocity)
+            if linear_speed >= IDLE_LINEAR_SPEED_THRESHOLD or angular_speed >= IDLE_ANGULAR_SPEED_THRESHOLD:
+                all_idle = False
+                break
 
-        if (
-            linear_speed < IDLE_LINEAR_SPEED_THRESHOLD
-            and angular_speed < IDLE_ANGULAR_SPEED_THRESHOLD
-        ):
+        if all_idle:
             self.idle_frames += 1
 
             if self.idle_frames > IDLE_FRAMES_LIMIT:
                 self.flinging = False
+                self.bird_thrown = False
                 self.idle_frames = 0
+                for b in self.birds[1:]:
+                    self.world.destroy_body(b.body)
+                self.birds = [self.bird]
                 self.bird.reset()
+                self.has_split = False
+                self.can_split = True
                 self.camera_target.update(self.bird.position)
         else:
             self.idle_frames = 0
@@ -187,7 +206,9 @@ class PlayState(BaseState):
     def render(self, surface: pygame.Surface) -> None:
         surface.fill(settings.BG_COLOR)
         self.level.render(surface, self.camera)
-        self.bird.render(surface, self.camera)
+        
+        for b in self.birds:
+            b.render(surface, self.camera)
 
         if self.aiming:
             self._render_pull_line(surface)
@@ -204,6 +225,9 @@ class PlayState(BaseState):
             self._on_touch(input_data)
         elif input_id == "touch_motion":
             self._on_touch_motion(input_data)
+        elif input_id == "split" and input_data.pressed:
+            if self.flinging and self.can_split and not self.has_split:
+                self._split_bird()
 
     def _mouse_to_virtual(self, position) -> pygame.Vector2:
         scale_x = settings.VIRTUAL_WIDTH / settings.WINDOW_WIDTH
@@ -217,7 +241,7 @@ class PlayState(BaseState):
             self.pressed_position = position
             world_position = pygame.Vector2(self.camera.screen_to_world(position))
 
-            if (world_position - self.bird.position).length() < AIM_GRAB_RADIUS:
+            if not self.bird_thrown and (world_position - self.bird.position).length() < AIM_GRAB_RADIUS:
                 self.aiming = True
                 self.aim_offset = pygame.Vector2()
             else:
@@ -237,7 +261,29 @@ class PlayState(BaseState):
         scale = FLING_IMPULSE_SCALE * self.bird.mass
         self.bird.body.apply_impulse(pull.x * scale, pull.y * scale)
         self.flinging = True
+        self.bird_thrown = True
         self.idle_frames = 0
+
+    def _split_bird(self) -> None:
+        self.has_split = True
+
+        bird_up = Bird(self.world, self.bird.position.x, self.bird.position.y)
+        bird_down = Bird(self.world, self.bird.position.x, self.bird.position.y)
+
+        v = self.bird.body.velocity
+        speed = v.length()
+        angle = math.atan2(v.y, v.x)
+
+        angle_diff = math.radians(15)
+
+        v_up = pygame.Vector2(math.cos(angle - angle_diff) * speed, math.sin(angle - angle_diff) * speed)
+        v_down = pygame.Vector2(math.cos(angle + angle_diff) * speed, math.sin(angle + angle_diff) * speed)
+
+        bird_up.body.velocity = (v_up.x, v_up.y)
+        bird_down.body.velocity = (v_down.x, v_down.y)
+
+        self.birds.append(bird_up)
+        self.birds.append(bird_down)
 
     def _on_touch_motion(self, input_data: InputData) -> None:
         if not (self.aiming or self.panning):
