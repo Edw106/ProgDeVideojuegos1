@@ -39,7 +39,7 @@ class PlayState(BaseState):
 
         self.timer = settings.LEVEL_TIME
 
-        self.goal_score = self.level * 1.25 * 1000
+        self.goal_score = self.score + self.level * 1.25 * 1000
 
         # A surface that supports alpha to highlight a selected tile
         self.tile_alpha_surface = pygame.Surface(
@@ -201,7 +201,17 @@ class PlayState(BaseState):
                         di = abs(self.highlighted_i2 - self.highlighted_i1)
                         dj = abs(self.highlighted_j2 - self.highlighted_j1)
 
-                        if di <= 1 and dj <= 1 and di != dj:
+                        if di == 0 and dj == 0:
+                            clicked_tile = self.board.tiles[self.highlighted_i1][self.highlighted_j1]
+                            if clicked_tile.powerup_type > 0:
+                                self.active = False
+                                clicked_tile.x = self.highlighted_j1 * settings.TILE_SIZE
+                                clicked_tile.y = self.highlighted_i1 * settings.TILE_SIZE
+                                self._calculate_matches([clicked_tile], force_explode=True)
+                            else:
+                                clicked_tile.x = self.highlighted_j1 * settings.TILE_SIZE
+                                clicked_tile.y = self.highlighted_i1 * settings.TILE_SIZE
+                        elif di <= 1 and dj <= 1 and di != dj:
                             self.active = False
                             tile1 = self.board.tiles[self.highlighted_i1][
                                 self.highlighted_j1
@@ -252,8 +262,8 @@ class PlayState(BaseState):
                     
                     self.highlighted_tile = False
 
-    def _calculate_matches(self, tiles: List, revert_on_failure: bool = False) -> None:
-        matches = self.board.calculate_matches_for(tiles)
+    def _calculate_matches(self, tiles: List, revert_on_failure: bool = False, force_explode: bool = False) -> None:
+        matches = self.board.calculate_matches_for(tiles, force_explode=force_explode)
 
         if matches is None:
             if revert_on_failure and len(tiles) == 2:

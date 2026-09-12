@@ -14,13 +14,14 @@ import settings
 
 
 class Tile:
-    def __init__(self, i: int, j: int, color: int, variety: int) -> None:
+    def __init__(self, i: int, j: int, color: int, variety: int, powerup_type: int = 0) -> None:
         self.i = i
         self.j = j
         self.x = self.j * settings.TILE_SIZE
         self.y = self.i * settings.TILE_SIZE
         self.color = color
         self.variety = variety
+        self.powerup_type = powerup_type
         self.alpha_surface = pygame.Surface(
             (settings.TILE_SIZE, settings.TILE_SIZE), pygame.SRCALPHA
         )
@@ -43,3 +44,7 @@ class Tile:
             (self.x + offset_x, self.y + offset_y),
             settings.FRAMES["tiles"][self.color][self.variety],
         )
+        if self.powerup_type == 1:
+            overlay = pygame.Surface((settings.TILE_SIZE, settings.TILE_SIZE), pygame.SRCALPHA)
+            pygame.draw.rect(overlay, (255, 0, 0, 100), pygame.Rect(0, 0, settings.TILE_SIZE, settings.TILE_SIZE), border_radius=4)
+            surface.blit(overlay, (self.x + offset_x, self.y + offset_y))

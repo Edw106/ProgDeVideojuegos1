@@ -23,6 +23,7 @@ class Board:
         self.x = x
         self.y = y
         self.matches: List[List[Tile]] = []
+        self.spawn_powerups: List[Tuple[int, int, int, int]] = []
         self.tiles: List[List[Tile]] = []
         valid_board = False
         while(not valid_board):
@@ -184,8 +185,28 @@ class Board:
         self.matches = original_matches
         return False
 
+    def _expand_match(self, match: List[Tile]) -> List[Tile]:
+        expanded = set(match)
+        queue = list(match)
+        
+        while queue:
+            t = queue.pop(0)
+            if t.powerup_type == 1:
+                # Add horizontal and vertical neighbors
+                for i in range(settings.BOARD_HEIGHT):
+                    t2 = self.tiles[i][t.j]
+                    if t2 is not None and t2 not in expanded:
+                        expanded.add(t2)
+                        queue.append(t2)
+                for j in range(settings.BOARD_WIDTH):
+                    t2 = self.tiles[t.i][j]
+                    if t2 is not None and t2 not in expanded:
+                        expanded.add(t2)
+                        queue.append(t2)
+        return list(expanded)
+
     def calculate_matches_for(
-        self, new_tiles: List[Tile]
+        self, new_tiles: List[Tile], force_explode: bool = False
     ) -> Optional[List[List[Tile]]]:
         self.in_match: Set[Tile] = set()
         self.in_stack: Set[Tile] = set()
@@ -193,12 +214,25 @@ class Board:
         for tile in new_tiles:
             if tile in self.in_match:
                 continue
-            match = self._calculate_match_rec(tile)
-            if len(match) > 0:
-                self.matches.append(match)
+                
+            if force_explode and tile.powerup_type > 0:
+                match = [tile]
+            else:
+                match = self._calculate_match_rec(tile)
+                
+            if len(match) >= 4 and not force_explode:
+                ptype = 2 if len(match) >= 5 else 1
+                spawn_tile = next((t for t in match if t in new_tiles), match[0])
+                self.spawn_powerups.append((spawn_tile.i, spawn_tile.j, spawn_tile.color, ptype))
 
-        delattr(self, "in_match")
-        delattr(self, "in_stack")
+            if len(match) > 0:
+                expanded_match = self._expand_match(match)
+                self.matches.append(expanded_match)
+
+        if hasattr(self, "in_match"):
+            delattr(self, "in_match")
+        if hasattr(self, "in_stack"):
+            delattr(self, "in_stack")
 
         return self.matches if len(self.matches) > 0 else None
 
@@ -208,6 +242,12 @@ class Board:
                 self.tiles[tile.i][tile.j] = None
 
         self.matches = []
+        
+        for (i, j, color, ptype) in self.spawn_powerups:
+            if self.tiles[i][j] is None:
+                self.tiles[i][j] = Tile(i, j, color, 4, powerup_type=ptype)
+                
+        self.spawn_powerups = []
 
     def get_falling_tiles(self) -> Tuple[Any, Dict[str, Any]]:
         # List of tweens to create
