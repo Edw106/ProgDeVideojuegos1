@@ -48,6 +48,10 @@ class Board:
             and self.tiles[i][j - 2].color == color
         )
 
+    def random_color_number(self) -> int:
+        return random.choice([0, 5, 8, 10, 11, 16])
+
+
     def _initialize_tiles(self) -> None:
         self.tiles = [
             [None for _ in range(settings.BOARD_WIDTH)]
@@ -55,9 +59,9 @@ class Board:
         ]
         for i in range(settings.BOARD_HEIGHT):
             for j in range(settings.BOARD_WIDTH):
-                color = random.randint(0, settings.NUM_COLORS - 1)
+                color = self.random_color_number()
                 while self._is_match_generated(i, j, color):
-                    color = random.randint(0, settings.NUM_COLORS - 1)
+                    color = self.random_color_number()
 
                 self.tiles[i][j] = Tile(
                     i, j, color, random.randint(0, settings.NUM_VARIETIES - 1)
@@ -249,7 +253,7 @@ class Board:
                     tile = Tile(
                         i,
                         j,
-                        random.randint(0, settings.NUM_COLORS - 1),
+                        self.random_color_number(),
                         random.randint(0, settings.NUM_VARIETIES - 1),
                     )
                     tile.y -= settings.TILE_SIZE
