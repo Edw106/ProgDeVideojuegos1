@@ -263,9 +263,9 @@ class PlayState(BaseState):
                     self.highlighted_tile = False
 
     def _calculate_matches(self, tiles: List, revert_on_failure: bool = False, force_explode: bool = False) -> None:
-        matches = self.board.calculate_matches_for(tiles, force_explode=force_explode)
+        result = self.board.calculate_matches_for(tiles, force_explode=force_explode)
 
-        if matches is None:
+        if result is None:
             if revert_on_failure and len(tiles) == 2:
                 tile1, tile2 = tiles[0], tiles[1]
 
@@ -303,8 +303,11 @@ class PlayState(BaseState):
         settings.SOUNDS["match"].stop()
         settings.SOUNDS["match"].play()
 
+        matches, explosions = result
         for match in matches:
             self.score += len(match) * 50
+        for explosion in explosions:
+            self.score += len(explosion) * 50
 
         self.board.remove_matches()
 

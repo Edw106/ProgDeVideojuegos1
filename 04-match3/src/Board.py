@@ -23,6 +23,7 @@ class Board:
         self.x = x
         self.y = y
         self.matches: List[List[Tile]] = []
+        self.explosions: List[List[Tile]] = []
         self.spawn_powerups: List[Tuple[int, int, int, int]] = []
         self.tiles: List[List[Tile]] = []
         valid_board = False
@@ -141,6 +142,8 @@ class Board:
 
     def any_valid_move(self) -> bool:
         original_matches = self.matches.copy()
+        original_explosions = self.explosions.copy() if hasattr(self, 'explosions') else []
+        original_spawns = self.spawn_powerups.copy() if hasattr(self, 'spawn_powerups') else []
         
         for i in range(settings.BOARD_HEIGHT):
             for j in range(settings.BOARD_WIDTH):
@@ -154,6 +157,8 @@ class Board:
                     tile1.j, tile2.j = tile2.j, tile1.j
                     
                     self.matches = []
+                    self.explosions = []
+                    self.spawn_powerups = []
                     matches = self.calculate_matches_for([tile1, tile2])
                     
                     # Swap back
@@ -162,6 +167,8 @@ class Board:
                     
                     if matches is not None:
                         self.matches = original_matches
+                        self.explosions = original_explosions
+                        self.spawn_powerups = original_spawns
                         return True
                         
                 # Check bottom neighbor
@@ -172,6 +179,8 @@ class Board:
                     tile1.i, tile2.i = tile2.i, tile1.i
                     
                     self.matches = []
+                    self.explosions = []
+                    self.spawn_powerups = []
                     matches = self.calculate_matches_for([tile1, tile2])
                     
                     # Swap back
@@ -180,13 +189,18 @@ class Board:
                     
                     if matches is not None:
                         self.matches = original_matches
+                        self.explosions = original_explosions
+                        self.spawn_powerups = original_spawns
                         return True
                         
         self.matches = original_matches
+        self.explosions = original_explosions
+        self.spawn_powerups = original_spawns
         return False
 
-    def _expand_match(self, match: List[Tile]) -> List[Tile]:
+    def _calculate_explosions(self, match: List[Tile]) -> List[Tile]:
         expanded = set(match)
+        explosions = set()
         queue = list(match)
         
         while queue:
@@ -197,19 +211,22 @@ class Board:
                     t2 = self.tiles[i][t.j]
                     if t2 is not None and t2 not in expanded:
                         expanded.add(t2)
+                        explosions.add(t2)
                         queue.append(t2)
                 for j in range(settings.BOARD_WIDTH):
                     t2 = self.tiles[t.i][j]
                     if t2 is not None and t2 not in expanded:
                         expanded.add(t2)
+                        explosions.add(t2)
                         queue.append(t2)
-        return list(expanded)
+        return list(explosions)
 
     def calculate_matches_for(
         self, new_tiles: List[Tile], force_explode: bool = False
-    ) -> Optional[List[List[Tile]]]:
+    ) -> Optional[Tuple[List[List[Tile]], List[List[Tile]]]]:
         self.in_match: Set[Tile] = set()
         self.in_stack: Set[Tile] = set()
+        self.explosions: List[List[Tile]] = []
 
         for tile in new_tiles:
             if tile in self.in_match:
@@ -226,22 +243,27 @@ class Board:
                 self.spawn_powerups.append((spawn_tile.i, spawn_tile.j, spawn_tile.color, ptype))
 
             if len(match) > 0:
-                expanded_match = self._expand_match(match)
-                self.matches.append(expanded_match)
+                self.matches.append(match)
+                explosion = self._calculate_explosions(match)
+                if explosion:
+                    self.explosions.append(explosion)
 
-        if hasattr(self, "in_match"):
-            delattr(self, "in_match")
-        if hasattr(self, "in_stack"):
-            delattr(self, "in_stack")
+        # Clear tracking sets
+        self.in_match = set()
+        self.in_stack = set()
 
-        return self.matches if len(self.matches) > 0 else None
+        return (self.matches, self.explosions) if len(self.matches) > 0 else None
 
     def remove_matches(self) -> None:
         for match in self.matches:
             for tile in match:
                 self.tiles[tile.i][tile.j] = None
+        for explosion in self.explosions:
+            for tile in explosion:
+                self.tiles[tile.i][tile.j] = None
 
         self.matches = []
+        self.explosions = []
         
         for (i, j, color, ptype) in self.spawn_powerups:
             if self.tiles[i][j] is None:
