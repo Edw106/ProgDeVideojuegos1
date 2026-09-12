@@ -304,6 +304,10 @@ class PlayState(BaseState):
         settings.SOUNDS["match"].play()
 
         matches, explosions = result
+        if len(explosions) > 0:
+            settings.SOUNDS["explosion"].stop()
+            settings.SOUNDS["explosion"].play()
+
         for match in matches:
             self.score += len(match) * 50
         for explosion in explosions:

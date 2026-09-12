@@ -48,3 +48,7 @@ class Tile:
             overlay = pygame.Surface((settings.TILE_SIZE, settings.TILE_SIZE), pygame.SRCALPHA)
             pygame.draw.rect(overlay, (255, 0, 0, 100), pygame.Rect(0, 0, settings.TILE_SIZE, settings.TILE_SIZE), border_radius=4)
             surface.blit(overlay, (self.x + offset_x, self.y + offset_y))
+        elif self.powerup_type == 2:
+            overlay = pygame.Surface((settings.TILE_SIZE, settings.TILE_SIZE), pygame.SRCALPHA)
+            pygame.draw.rect(overlay, (0, 191, 255, 100), pygame.Rect(0, 0, settings.TILE_SIZE, settings.TILE_SIZE), border_radius=4)
+            surface.blit(overlay, (self.x + offset_x, self.y + offset_y))

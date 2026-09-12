@@ -64,6 +64,7 @@ SOUNDS = {
     "match": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "match.wav"),
     "next-level": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "next-level.wav"),
     "select": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "select.wav"),
+    "explosion": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "explotion.wav"),
 }
 
 pygame.mixer.music.load(BASE_DIR / "assets" / "sounds" / "music.mp3")

@@ -219,6 +219,15 @@ class Board:
                         expanded.add(t2)
                         explosions.add(t2)
                         queue.append(t2)
+            elif t.powerup_type == 2:
+                # Add all tiles of the same color
+                for i in range(settings.BOARD_HEIGHT):
+                    for j in range(settings.BOARD_WIDTH):
+                        t2 = self.tiles[i][j]
+                        if t2 is not None and t2.color == t.color and t2 not in expanded:
+                            expanded.add(t2)
+                            explosions.add(t2)
+                            queue.append(t2)
         return list(explosions)
 
     def calculate_matches_for(
@@ -267,7 +276,8 @@ class Board:
         
         for (i, j, color, ptype) in self.spawn_powerups:
             if self.tiles[i][j] is None:
-                self.tiles[i][j] = Tile(i, j, color, 4, powerup_type=ptype)
+                variety = 4 if ptype == 1 else 0
+                self.tiles[i][j] = Tile(i, j, color, variety, powerup_type=ptype)
                 
         self.spawn_powerups = []
 
