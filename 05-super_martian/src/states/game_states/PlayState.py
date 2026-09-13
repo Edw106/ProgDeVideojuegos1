@@ -89,6 +89,9 @@ class PlayState(BaseState):
         self.camera.update(dt)
         self.game_level.update(dt)
 
+        if self.player.score >= settings.TARGET_SCORE and not self.game_level.key_block_active:
+            self.game_level.reveal_key_block()
+
         for creature in self.game_level.creatures:
             if self.player.collides(creature):
                 self.player.change_state("dead")

@@ -30,6 +30,27 @@ class GameLevel:
         self.creatures = []
         self.items = []
 
+        self.key_block_row = None
+        self.key_block_col = None
+        self.key_block_gid = None
+        self.key_block_active = False
+        self.key_spawned = False
+
+        ground_layer = self.tilemap.get_layer("ground")
+        for row in range(len(ground_layer)):
+            for col in range(len(ground_layer[row])):
+                gid = ground_layer[row][col]
+                if gid > 0:
+                    props = self.tilemap.properties_of_gid(gid)
+                    if props and "key" in props:
+                        self.key_block_row = row
+                        self.key_block_col = col
+                        self.key_block_gid = gid
+                        self.tilemap.set_gid("ground", row, col, 0)
+                        break
+            if self.key_block_gid is not None:
+                break
+
         for obj in self.tilemap.object_layers.get("creatures", []):
             self.add_creature(
                 {
@@ -45,7 +66,7 @@ class GameLevel:
             self.add_item(
                 {
                     "item_name": "coins",
-                    "frame_index": obj.properties["frame_index"],
+                    "frame_index": obj.properties.get("frame_index", 62),
                     "x": obj.x,
                     "y": obj.y,
                     "width": obj.width,
@@ -54,6 +75,11 @@ class GameLevel:
             )
 
         self._schedule_flying_creature_spawn()
+
+    def reveal_key_block(self) -> None:
+        if not self.key_block_active and self.key_block_gid is not None:
+            self.key_block_active = True
+            self.tilemap.set_gid("ground", self.key_block_row, self.key_block_col, self.key_block_gid)
 
     def add_item(self, item_data: Dict[str, Any]) -> None:
         item_name = item_data.pop("item_name")
