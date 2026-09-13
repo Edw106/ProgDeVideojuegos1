@@ -174,11 +174,11 @@ class GameLevel:
         self.special_key = KeyItem(block_x, block_y, self)
         self.items.append(self.special_key)
         
-        # Tween it upwards by 16 pixels over 0.5 seconds, then make it active
+        # Tween it upwards by 16 pixels over 0.5 seconds, then make it collidable
         Timer.tween(
             0.5,
             [(self.special_key, {"y": block_y - 16})],
-            on_finish=lambda: setattr(self.special_key, "active", True)
+            on_finish=lambda: setattr(self.special_key, "collidable", True)
         )
 
     def on_key_collected(self) -> None:
