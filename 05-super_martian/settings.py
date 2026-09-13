@@ -59,7 +59,7 @@ FLYING_CREATURE_MAX_SPAWN_DELAY = 9
 
 NUM_LEVELS = 1
 
-TARGET_SCORE = 10
+TARGET_SCORE = 60
 
 BASE_DIR = pathlib.Path(__file__).parent
 
