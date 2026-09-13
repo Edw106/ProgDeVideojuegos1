@@ -59,3 +59,13 @@ class Player(GameEntity):
 
     def on_input(self, input_id: str, input_data: InputData) -> None:
         self.command_bindings.dispatch(self, input_id, input_data)
+
+    def on_collide_top(self) -> None:
+        # We check the tile directly above the center of the player
+        row, col = self.tilemap.tile_at(self.x + self.width / 2, self.y - 1)
+        
+        # If the special block is active and we haven't spawned the key yet...
+        if getattr(self.game_level, "key_block_active", False) and not getattr(self.game_level, "key_spawned", False):
+            # And we hit exactly that block...
+            if row == self.game_level.key_block_row and col == self.game_level.key_block_col:
+                self.game_level.spawn_key()

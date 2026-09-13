@@ -160,6 +160,30 @@ class GameLevel:
             creature for creature in self.creatures if not creature.is_dead
         ]
 
+    def spawn_key(self) -> None:
+        from src.KeyItem import KeyItem
+        from gale.timer import Timer
+
+        self.key_spawned = True
+        settings.SOUNDS["count"].play()  # Feedback sound
+        
+        # Calculate start position based on the block's tile coordinates
+        block_x, block_y = self.tilemap.position_of(self.key_block_row, self.key_block_col)
+        
+        # Create the Key object exactly at the block's coordinates
+        self.special_key = KeyItem(block_x, block_y, self)
+        self.items.append(self.special_key)
+        
+        # Tween it upwards by 16 pixels over 0.5 seconds, then make it active
+        Timer.tween(
+            0.5,
+            [(self.special_key, {"y": block_y - 16})],
+            on_finish=lambda: setattr(self.special_key, "active", True)
+        )
+
+    def on_key_collected(self) -> None:
+        self.level_completed = True
+
     def render(self, surface: pygame.Surface, camera: Any) -> None:
         self.tilemap.render(surface, camera)
         for creature in self.creatures:

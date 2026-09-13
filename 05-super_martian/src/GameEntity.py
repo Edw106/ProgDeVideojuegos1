@@ -58,6 +58,9 @@ class GameEntity(mixins.DrawableMixin, mixins.AnimatedMixin, mixins.CollidableMi
     ) -> None:
         self.state_machine.change(state_id, *args, **kwargs)
 
+    def on_collide_top(self) -> None:
+        pass
+
     def update(self, dt: float) -> None:
         # Applied unconditionally (not just while jumping/falling) so the
         # vertical move below is never a no-op dy=0 call, which would skip
@@ -81,6 +84,8 @@ class GameEntity(mixins.DrawableMixin, mixins.AnimatedMixin, mixins.CollidableMi
         if collided_y:
             if self.vy > 0:
                 self.on_ground = True
+            elif self.vy < 0:
+                self.on_collide_top()
             self.vy = 0
         else:
             self.on_ground = False

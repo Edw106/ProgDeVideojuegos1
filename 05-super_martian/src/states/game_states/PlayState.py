@@ -26,6 +26,7 @@ from src.Player import Player
 
 class PlayState(BaseState):
     def enter(self, **enter_params: Dict[str, Any]) -> None:
+        self.fade_alpha = 0
         self.level = enter_params.get("level", 1)
         self.game_level = enter_params.get("game_level")
         if self.game_level is None:
@@ -62,6 +63,8 @@ class PlayState(BaseState):
             self.clock = Clock(30)
 
             def countdown_timer():
+                if getattr(self, "victory_triggered", False):
+                    return
                 self.clock.count_down()
 
                 if 0 < self.clock.time <= 5:
@@ -74,7 +77,24 @@ class PlayState(BaseState):
         else:
             Timer.resume()
 
+    def trigger_victory(self) -> None:
+        self.victory_triggered = True
+        
+        # Stop music and play victory sound (reusing count/jump if no dedicated victory sound exists, or maybe just stop music)
+        pygame.mixer.music.stop()
+        settings.SOUNDS["win"].play()
+        
+        # Tween fade out, then return to start screen
+        Timer.tween(
+            2.0,
+            [(self, {"fade_alpha": 255})],
+            on_finish=lambda: self.state_machine.change("start")
+        )
+
     def update(self, dt: float) -> None:
+        if getattr(self.game_level, "level_completed", False) and not getattr(self, "victory_triggered", False):
+            self.trigger_victory()
+            
         if self.player.is_dead:
             pygame.mixer.music.stop()
             pygame.mixer.music.unload()
@@ -88,6 +108,10 @@ class PlayState(BaseState):
 
         self.camera.update(dt)
         self.game_level.update(dt)
+        
+        if getattr(self, "victory_triggered", False):
+            # Don't update creatures or collect coins if victory is triggered
+            return
 
         if self.player.score >= settings.TARGET_SCORE and not self.game_level.key_block_active:
             self.game_level.reveal_key_block()
@@ -127,6 +151,11 @@ class PlayState(BaseState):
             (255, 255, 255),
             shadowed=True,
         )
+
+        if self.fade_alpha > 0:
+            fade_surface = pygame.Surface((settings.VIRTUAL_WIDTH, settings.VIRTUAL_HEIGHT), pygame.SRCALPHA)
+            pygame.draw.rect(fade_surface, (0, 0, 0, min(255, int(self.fade_alpha))), pygame.Rect(0, 0, settings.VIRTUAL_WIDTH, settings.VIRTUAL_HEIGHT))
+            surface.blit(fade_surface, (0, 0))
 
     def on_input(self, input_id: str, input_data: InputData) -> None:
         if input_id == "pause" and input_data.pressed:
